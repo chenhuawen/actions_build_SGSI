@@ -1,9 +1,9 @@
 {
   "rom_url": "https://bigota.d.miui.com/21.4.21/miui_GINKGO_21.4.21_694d0a3a9e_11.0.zip",
-  "rom_name": "miui_GINKGO_21.4.21_694d0a3a9e_11.0",
+  "rom_name": "update.zip",
   "pack_sgsi": "SGSI.zip",
   "make_type": "AB",
-  "rom_type": "MIUI",
+  "rom_type": "",
   "light_fix": true,
   "bug_fix": true,
   "version": "11",
