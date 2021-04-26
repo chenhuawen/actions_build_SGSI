@@ -1,12 +1,12 @@
 {
-  "rom_url": "https://firmware.meizu.com/Firmware/Flyme/m2191/9.0.1.0/cn/20210310200723/8645f200/update.zip",
-  "rom_name": "update.zip",
+  "rom_url": "https://bigota.d.miui.com/21.4.21/miui_GINKGO_21.4.21_694d0a3a9e_11.0.zip",
+  "rom_name": "miui_GINKGO_21.4.21_694d0a3a9e_11.0",
   "pack_sgsi": "SGSI.7z",
   "make_type": "AB",
-  "rom_type": "flyme",
+  "rom_type": "MIUI",
   "light_fix": true,
   "bug_fix": true,
   "version": "11",
   "upload_transfer": true,
-  "upload_release": false
+  "upload_release": true
 }
