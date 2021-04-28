@@ -11,9 +11,19 @@ jobs:
     steps: 
        - name: Checkout
          uses: actions/checkout@main
-                   
+       
+       - name: Clean Up
+         run: |       
+           docker rmi `docker images -q`
+           sudo rm -rf /usr/share/dotnet /etc/mysql /etc/php /etc/apt/sources.list.d
+           sudo -E apt-get -y purge azure-cli ghc* zulu* hhvm llvm* firefox google* dotnet* powershell openjdk* mysql* php*
+           sudo -E apt-get update
+           sudo -E apt-get -y autoremove --purge
+           sudo -E apt-get clean
+           
        - name: Get variables
          run: |
+           echo -e "\033[33m 线程数: $(nproc) \033[0m"
            echo "::set-output name=rom_url::$(jq -r '.rom_url' sgsi.json)"
            echo "::set-output name=rom_name::$(jq -r '.rom_name' sgsi.json)"
            echo "::set-output name=pack_sgsi::$(jq -r '.pack_sgsi' sgsi.json)"
@@ -31,7 +41,9 @@ jobs:
          
        - name: Setting Up
          run: |
-            sudo apt-get install -y git openjdk-8-jdk wget git zip unzip curl
+            #sudo apt update && sudo apt upgrade -y
+            sudo apt-get install -y git wget git zip unzip curl axel
+            df -h
            
        - name: Download SGSI-build-tool
          uses: robinraju/release-downloader@v1
@@ -54,7 +66,11 @@ jobs:
            sudo rm -rf SGSI-build-tool-11/11/makeimg.sh
            sudo mv bin/makeimg.sh SGSI-build-tool-11/11/
            sudo chmod 777 -R SGSI-build-tool-11/
-            sudo bash SGSI-build-tool-11/11/setup.sh
+           sudo apt-get -y purge "openjdk*"
+           sudo bash SGSI-build-tool-11/11/setup.sh
+           #dpkg -l | grep "openjdk*"
+           sudo apt-get -y --purge remove "adoptopenjdk-11-hotspot"
+           java -version
            
        - name: Download Rom
          run: |
