@@ -7,8 +7,8 @@
   "light_fix": true,
   "bug_fix": true,
   "version": "11",
-  "upload_transfer": false,
+  "upload_transfer": true,
   "upload_release": true,
-  "use_7zip": false,
-  "use_zip": true
+   "use_zip": true,
+  "use_7zip": false
 }
