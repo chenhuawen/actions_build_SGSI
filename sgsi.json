@@ -1,14 +1,14 @@
 {
-  "rom_url": "https://bigota.d.miui.com/V12.5.1.0.RFBCNXM/miui_GRUS_V12.5.1.0.RFBCNXM_0aa6dd99a1_11.0.zip",
-  "rom_name": "miui_GRUS_V12.5.1.0.RFBCNXM_0aa6dd99a1_11.0.zip",
+  "rom_url": "https://bigota.d.miui.com/21.4.23/miui_GINKGO_21.4.23_b11fdde336_11.0.zip",
+  "rom_name": "update.zip",
   "pack_sgsi": "SGSI.zip",
   "make_type": "AB",
-  "rom_type": "MIUI",
-  "light_fix": false,
+  "rom_type": "miui",
+  "light_fix": true,
   "bug_fix": true,
   "version": "11",
   "upload_transfer": true,
   "upload_release": false,
   "use_7zip": false,
-  "use_zip": true,
+  "use_zip": true
 }
