@@ -1,9 +1,9 @@
 {
-  "rom_url": "https://firmware.meizu.com/Firmware/Flyme/meizu18/9.0.2.1/cn/20210425155631/6b138a10/update.zip",
+  "rom_url": "https://hugeota.d.miui.com/21.4.28/miui_GINKGO_21.4.28_924a46d87d_11.0.zip”，
   "rom_name": "update.zip",
   "pack_sgsi": "SGSI.7z",
   "make_type": "AB",
-  "rom_type": "Flyme",
+  "rom_type": "MIUI",
   "light_fix": false,
   "bug_fix": false,
   "version": "11",
