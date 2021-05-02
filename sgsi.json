@@ -1,14 +1,14 @@
 {
   "rom_url": "https://firmware.meizu.com/Firmware/Flyme/meizu18/9.0.2.1/cn/20210425155631/6b138a10/update.zip",
   "rom_name": "update.zip",
-  "pack_sgsi": "SGSI.zip",
+  "pack_sgsi": "SGSI.7z",
   "make_type": "AB",
   "rom_type": "Flyme",
-  "light_fix": true,
-  "bug_fix": true,
+  "light_fix": false,
+  "bug_fix": false,
   "version": "11",
   "upload_transfer": true,
   "upload_release": false,
-  "use_7zip": false,
-  "use_zip": true
+  "use_7zip": true,
+  "use_zip":false
 }
