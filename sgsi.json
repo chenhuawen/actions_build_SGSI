@@ -1,14 +1,13 @@
 {
-  "rom_url": "https://hugeota.d.miui.com/21.4.28/miui_GINKGO_21.4.28_924a46d87d_11.0.zip",
-  "rom_name": "miui_GINKGO_21.4.28_924a46d87d_11.0.zip",
-  "pack_sgsi": "SGSI.zip",
+  "rom_url": "https://download.c.realme.com/osupdate/RMX1851_11_OTA_1130_all_iuygSyEV1LmI.ozip",
+  "rom_name": "MIUI12.5.zip",
+  "pack_sgsi": "realmeUI-realmeX-5.9-anleng",
   "make_type": "AB",
-  "rom_type": "MIUI",
+  "rom_type": "",
   "light_fix": true,
-  "bug_fix": true,
-  "version": "11",
-  "upload_transfer": true,
-  "upload_release": false,
-  "use_7zip": false,
-  "use_zip": true
-}
+  "bug_fix": false,
+  "version": "10",
+  "upload_transfer":false,
+  "upload_release": true,
+  "use_7zip": true,
+  "use_zip": false
