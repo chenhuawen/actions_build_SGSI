@@ -1,13 +1,14 @@
 {
-  "rom_url": "https://download.c.realme.com/osupdate/RMX1851_11_OTA_1130_all_iuygSyEV1LmI.ozip",
-  "rom_name": "realmeUI.zip",
-  "pack_sgsi": "realmeUI-realmeX-5.9-anleng",
+  "rom_url": "https://download.meizu.com/Firmware/Flyme/meizu17/9.0.0.0/cn/20210430192938/d7bcd353/update.zip",
+  "rom_name": "update.zip",
+  "pack_sgsi": "SGSI.zip",
   "make_type": "AB",
-  "rom_type": "",
+  "rom_type": "flyme",
   "light_fix": true,
-  "bug_fix": false,
-  "version": "10",
-  "upload_transfer":false,
-  "upload_release": true,
-  "use_7zip": true,
-  "use_zip": false
+  "bug_fix": true,
+  "version": "11",
+  "upload_transfer": true,
+  "upload_release": false,
+  "use_7zip": false,
+  "use_zip": true
+}
