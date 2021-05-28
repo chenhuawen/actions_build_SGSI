@@ -1,8 +1,8 @@
 {
-  "rom_url": "https://bigota.d.miui.com/V12.5.3.0.RJBCNXM/miui_UMI_V12.5.3.0.RJBCNXM_94e14e79f2_11.0.zip",
-  "rom_name": "update.zip",
+  "rom_url": "https://bigota.d.miui.com/21.4.28/miui_GINKGO_21.4.28_924a46d87d_11.0.zip",
+  "rom_name": "miui_GINKGO_21.4.28_924a46d87d_11.0.zip",
   "pack_sgsi": "SGSI.zip",
-  "make_type": "A",
+  "make_type": "AB",
   "rom_type": "miui",
   "light_fix": true,
   "bug_fix": true,
