@@ -144,4 +144,4 @@ jobs:
            name: xiaoxinSGSI-${{ steps.var.outputs.rom_type }}-${{ steps.var.outputs.make_type }}-Android${{ steps.var.outputs.version }}-unpack
            tag_name: main
          env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
