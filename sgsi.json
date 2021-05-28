@@ -1,14 +1,14 @@
 {
   "rom_url": "https://bigota.d.miui.com/21.4.28/miui_GINKGO_21.4.28_924a46d87d_11.0.zip",
   "rom_name": "miui_GINKGO_21.4.28_924a46d87d_11.0.zip",
-  "pack_sgsi": "SGSI.7zip",
+  "pack_sgsi": "SGSI.zip",
   "make_type": "AB",
-  "rom_type": "miui",
+  "rom_type": "MIUI",
   "light_fix": true,
-  "bug_fix": true,
+  "bug_fix": false,
   "version": "11",
   "upload_transfer": true,
-  "upload_release": false,
+  "upload_release": true,
   "use_7zip": true,
   "use_zip": false
 }
