@@ -68,7 +68,7 @@ jobs:
            sudo apt-get -y purge "openjdk*"
            sudo bash SGSI-build-tool-11/11/setup.sh
            #dpkg -l | grep "openjdk*"
-           sudo apt-get -y --purge remove "adoptopenjdk-1.8-hotspot"
+           sudo apt-get -y --purge remove "adoptopenjdk-11-hotspot"
            java -version
            
        - name: Download Rom
