@@ -6,8 +6,7 @@ on:
   
 jobs:
   build:
-    runs-on: ubuntu
-    
+    runs-on: ubuntu-latest    
     steps: 
        - name: Checkout
          uses: actions/checkout@main
@@ -49,7 +48,7 @@ jobs:
          uses: robinraju/release-downloader@v1
          with: 
            repository: "xiaoxindada/SGSI-build-tool"
-           tag: "v11-1.0"
+           tag: "v11-1.7"
            fileName: "SGSI-build-tool-11.tar"
            
        - name: Initialization environment
