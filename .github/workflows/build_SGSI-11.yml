@@ -50,7 +50,7 @@ jobs:
          with: 
            repository: "xiaoxindada/SGSI-build-tool"
            tag: "v11-1.0"
-           fileName: "SGSI-build-tool.tar"
+           fileName: "SGSI-build-tool-11.tar"
            
        - name: Initialization environment
          run: |
