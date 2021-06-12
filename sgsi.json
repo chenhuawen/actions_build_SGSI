@@ -1,9 +1,9 @@
 {
-  "rom_url": "https://bigota.d.miui.com/V12.0.4.0.QFMCNXM/miui_LAURUS_V12.0.4.0.QFMCNXM_74cce5492a_10.0.zip",
-  "rom_name": "miui_LAURUS_V12.0.4.0.QFMCNXM_74cce5492a_10.0.zip",
+  "rom_url": "https://coloroswebsitefs.coloros.com/coloroswebsite-coloros-com/grs_20210514101850/PCHM10_11_OTA_1770_all_mEn3qE24Oezm.ozip",
+  "rom_name": "PCHM10_11_OTA_1770_all_mEn3qE24Oezm.ozip",
   "pack_sgsi": "SGSI.7z",
   "make_type": "AB",
-  "rom_type": "MIUI",
+  "rom_type": "ColorOS",
   "light_fix": false,
   "bug_fix": false,
   "version": "10",
