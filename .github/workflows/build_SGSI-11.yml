@@ -127,7 +127,7 @@ jobs:
          if: steps.var.outputs.use_7zip == 'true'
          run: |   
              cd SGSI-build-tool/10
-             7za a -t7z -r ${{ steps.var.outputs.pack_sgsi }}
+             7za a -t7z -r ${{ steps.var.outputs.pack_sgsi }} SGSI-build-tool/10/SGSI/*
        
        - name: Packing Output File to zip
          if: steps.var.outputs.use_zip == 'true'
