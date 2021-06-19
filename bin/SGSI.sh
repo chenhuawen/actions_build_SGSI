@@ -1,640 +1,645 @@
 #!/bin/bash
 
-# Copyright (C) 2020 Xiaoxindada <2245062854@qq.com>
+#by 迷路的小新大大
 
-LOCALDIR=`cd "$( dirname $0 )" && pwd`
-cd $LOCALDIR
 source ./bin.sh
 
-systemdir="$LOCALDIR/out/system/system"
-configdir="$LOCALDIR/out/config"
-
-Usage() {
-cat <<EOT
-Usage:
-$0 AB|ab or $0 A|a
-EOT
-}
-
-case $1 in 
-  "AB"|"ab"|"A"|"a")
-    echo "" > /dev/null 2>&1
-    ;;
-  *)
-    Usage
-    exit
-    ;;
-esac
+#静态制作
 
 rm -rf ./out
 rm -rf ./SGSI
 mkdir ./out
 
 if [ -e ./vendor.img ];then
-  echo "解压vendor.img中..."
-  python3 $bin/imgextractor.py ./vendor.img ./out
-  if [ $? = "1" ];then
-    echo "vendor.img解压失败！"
-    exit
-  fi
-fi
-echo "解压system.img中..."
-python3 $bin/imgextractor.py ./system.img ./out
-if [ $? = "1" ];then
-  echo "system.img解压失败！"
-  exit
+
+ echo "解压vendor.img中......"
+ python3 $bin/imgextractor.py ./vendor.img ./out
 fi
 
-model="$(cat $systemdir/build.prop | grep 'model')"
+echo "解压system.img中......"
+python3 $bin/imgextractor.py ./system.img ./out
+
+cd ./make
+./new_fs.sh
+cd ../
+
+model="$(cat ./out/system/system/build.prop | grep 'model' | cat)"
 echo "当前原包机型为:"
 echo "$model"
 
-function normal() {
-  # 为所有rom修改ramdisk层面的system
-  echo "正在修改system外层"
-  cd ./make/ab_boot
-  ./ab_boot.sh
-  cd $LOCALDIR
-  echo "修改完成"
+function apex (){
+ rm -rf ./make/apex
+ mkdir ./make/apex
+ 
+ sed -i '/\/system\/system\/apex/d' ./out/config/system_file_contexts
+ sed -i '/system\/system\/apex/d' ./out/config/system_fs_config
+ 
+ files=$(find ./out/system/system/apex/ -name '*')
+ 
+ for file in $files ;do
+  if [ -d "$file" ];then
+   echo "$file" | sed 's#./out/#/#g' | sed 's/$/& 0 0 0755/g' | sed 's/.//' >> ./make/apex/apex_fs
+   echo "$file" | sed 's#./out/#/#g' | sed 's/$/& u:object_r:system_file:s0/g' >> ./make/apex/apex_contexts
+  fi
+  
+  if [ -f "$file" ];then
+   echo "$file" | sed 's#./out/#/#g' | sed 's/$/& 0 0 0644/g' | sed 's/.//' >> ./make/apex/apex_fs
+   if [ $(echo "$file" | grep '/*.so') ];then
+    echo "$file" | grep '.so' | sed 's#./out/#/#g' | sed 's/$/& u:object_r:system_lib_file:s0/g' >> ./make/apex/apex_contexts
+   else
+    echo "$file" | sed 's#./out/#/#g' | sed 's/$/& u:object_r:system_file:s0/g' >> ./make/apex/apex_contexts
+   fi
+  fi 
+ done
+ 
+ #contexts
+ sed -i '1d' ./make/apex/apex_contexts
+ echo "/system/system/apex u:object_r:system_file:s0" >> ./make/apex/apex_contexts
+ sed -i '/dex2oat/d' ./make/apex/apex_contexts
+ sed -i '/dexoptanalyzer/d' ./make/apex/apex_contexts
+ sed -i '/linker/d' ./make/apex/apex_contexts
+ #sed -i '/linker64/d' ./make/apex/apex_contexts
+ sed -i '/profman/d' ./make/apex/apex_contexts
+ sed -i '/com.android.resolv.apex/d' ./make/apex/apex_contexts
+ echo "/system/system/apex/com.android.resolv.apex u:object_r:system_file:s0" >> ./make/apex/apex_contexts
+ cat ./make/add_fs/apex_contexts >> ./make/apex/apex_contexts
+ 
+ #fs
+ sed -i '1d' ./make/apex/apex_fs
+ echo "system/system/apex 0 0 0755" >> ./make/apex/apex_fs
+ cat ./make/apex/apex_fs | grep "bin" >> ./make/apex/apex_bin_fs
+ sed -i '/bin/d' ./make/apex/apex_fs
+ sed -i 's/ 0 0 0644/ 0 2000 0755/g' ./make/apex/apex_bin_fs
+ sed -i 's/ 0 0 0755/ 0 2000 0755/g' ./make/apex/apex_bin_fs
+ sed -i '/dalvikvm/d' ./make/apex/apex_bin_fs
+ sed -i '/linker\_asan/d' ./make/apex/apex_bin_fs
+ #sed -i '/linker\_asan64/d' ./make/apex/apex_bin_fs
+ cat ./make/add_fs/apex_symlink_fs >> ./make/apex/apex_bin_fs
+ cat ./make/apex/apex_bin_fs >> ./make/apex/apex_fs
+ 
+ #合并fs
+ cat ./make/apex/apex_fs >> ./out/config/system_fs_config
+ cat ./make/apex/apex_contexts >> ./out/config/system_file_contexts
 
-  # 为所有rom启用apex扁平化处理
-  rm -rf ./make/apex
-  apex_ls() {
-    cd $systemdir/apex
-    ls
-    cd $LOCALDIR
-  }
-  apex_file() {
-    apex_ls | grep -q '.apex'
-  }
-  if apex_file ;then
-    echo "检测到apex，开始apex扁平化处理"
-    ./make/apex_flat/apex.sh "official"
+}
+
+function normal (){
+
+ echo "当前为正常pt 启用正常处理方案"
+
+ read -p "按任意键开始处理" var
+ echo "SGSI化处理开始......."
+ 
+ echo "正在修改system外层"
+ cd ./make/ab_boot
+ ./ab_boot.sh
+ cd ../../
+ echo "修改完成"
+ 
+ #apex处理
+ rm -rf ./make/apex
+ apex_check (){
+ cd ./out/system/system/apex
+ ls
+ cd ../../../../
+ }
+ apex_file (){
+  apex_check | grep '.apex' > /dev/null 2>&1
+ }
+ if apex_file ;then
+  echo "正在apex扁平化处理"
+  ./apex.sh
+  apex
+  find ./out/system/system/apex/ -type f -name "*.apex" -delete
+ fi
+ cp -frp ./make/apex_patch/* ./out/system/system/apex/
+ 
+ #oppo检测
+ if [ -e ./out/vendor/euclid/ ];then
+  echo "检测到OPPO_Color 启用专用处理......."
+  ./oppo.sh
+  echo "处理完成 请检查细节部分"
+ else
+  if [ -e ./out/vendor/oppo/ ];then  
+   echo "检测到OPPO_Color 启用专用处理......."
+   ./oppo.sh
+   echo "处理完成 请检查细节部分"
+  fi
  fi
 
-  # 如果原包不支持apex封装，则添加 *.apex 
-  if ! apex_file ;then
-    echo "正在添加AOSP_APEXs"
-    7z x ./make/add_apexs/apex_common.7z -o$systemdir/apex/ > /dev/null 2>&1
-    android_art_debug_check() {
-      apex_ls | grep -q "art.debug" 
-    }
-    android_art_release_check() {
-      apex_ls | grep -q "art.release"
-    }
-    if android_art_debug_check ;then
-      7z x ./make/add_apexs/art.debug.7z -o$systemdir/apex/ > /dev/null 2>&1
-    fi
+ #重置make
+ echo "正在重置make文件夹数据....."
+ true > ./make/add_etc/vintf/manifest2
+ echo "" >> ./make/add_etc/vintf/manifest2
+ echo "<!-- oem自定义接口 -->" >> ./make/add_etc/vintf/manifest2
 
-    if android_art_release_check ;then
-      7z x ./make/add_apexs/art.release.7z -o$systemdir/apex/ > /dev/null 2>&1
-    fi
-  fi
+ true > ./make/add_build/build2
+ echo "" >> ./make/add_build/build2
+ echo "#oem厂商自定义属性" >> ./make/add_build/build2
 
-  # apex_vndk调用处理
-  cd ./make/apex_vndk_start
-  ./make.sh
-  cd $LOCALDIR 
+ echo "" > /dev/null 2>&1
  
-  # apex_fs数据整合
-  cd ./make/apex_flat
-  ./add_apex_fs.sh
-  cd $LOCALDIR
-
-  echo "正在进行其他处理"
-
-  # 重置make目录
-  true > ./make/add_etc_vintf_patch/manifest_custom
-  echo "" >> ./make/add_etc_vintf_patch/manifest_custom
-  echo "<!-- oem自定义接口 -->" >> ./make/add_etc_vintf_patch/manifest_custom
-
-  true > ./make/add_build/add_oem_build
-  echo "" >> ./make/add_build/add_oem_build
-  echo "# oem厂商自定义属性" >> ./make/add_build/add_oem_build
+ #系统种类检测
+ cd ./make
+ ./romtype.sh
+ cd ../
  
-  # 为所有rom添加抓logcat的文件
-  cp -frp ./make/add_logcat/system/* $systemdir/
-  cat ./make/add_logcat_fs/contexts >> $configdir/system_file_contexts
-  cat ./make/add_logcat_fs/fs >> $configdir/system_fs_config
+ #抓logcat
+ cp -frp ./make/cp_logcat/bin/* ./out/system/system/bin/
+ cp -frp ./make/cp_logcat/etc/* ./out/system/system/etc/
 
-  # 为所有rom做usb通用化
-  cp -frp ./make/aosp_usb/* $systemdir/etc/init/hw/
+ #manifest.xml处理
+ rm -rf ./vintf
+ rm -rf ./temp
+ mkdir ./vintf
+ mkdir ./temp
 
-  # 为所有rom做selinux通用化处理
-  sed -i "/typetransition location_app/d" $systemdir/etc/selinux/plat_sepolicy.cil
-  sed -i '/u:object_r:vendor_default_prop:s0/d' $systemdir/etc/selinux/plat_property_contexts
-  sed -i '/software.version/d'  $systemdir/etc/selinux/plat_property_contexts
-  sed -i 's/sys.usb.config          u:object_r:system_radio_prop:s0//g' $systemdir/etc/selinux/plat_property_contexts
-  sed -i 's/ro.build.fingerprint    u:object_r:fingerprint_prop:s0//g' $systemdir/etc/selinux/plat_property_contexts
+ cp -frp $(find ./out/system/ -type f -name 'manifest.xml') ./vintf/
 
-  if [ -e $systemdir/product/etc/selinux/mapping ];then
-    find $systemdir/product/etc/selinux/mapping/ -type f -empty | xargs rm -rf
-    sed -i '/software.version/d'  $systemdir/product/etc/selinux/product_property_contexts
-    sed -i '/vendor/d' $systemdir/product/etc/selinux/product_property_contexts
-    sed -i '/secureboot/d' $systemdir/product/etc/selinux/product_property_contexts
-    sed -i '/persist/d' $systemdir/product/etc/selinux/product_property_contexts
-    sed -i '/oem/d' $systemdir/product/etc/selinux/product_property_contexts
-  fi
- 
-  if [ -e $systemdir/system_ext/etc/selinux/mapping ];then
-    find $systemdir/system_ext/etc/selinux/mapping/ -type f -empty | xargs rm -rf
-    sed -i '/software.version/d'  $systemdir/system_ext/etc/selinux/system_ext_property_contexts
-    sed -i '/vendor/d' $systemdir/system_ext/etc/selinux/system_ext_property_contexts
-    sed -i '/secureboot/d' $systemdir/system_ext/etc/selinux/system_ext_property_contexts
-    sed -i '/persist/d' $systemdir/system_ext/etc/selinux/system_ext_property_contexts
-    sed -i '/oem/d' $systemdir/system_ext/etc/selinux/system_ext_property_contexts
-  fi
- 
-  build_modify() {
-  # 为所有qssi原包修复机型数据
-    qssi() {
-      cat $systemdir/build.prop | grep -qo 'qssi'
-    }
-    if qssi ;then
-      echo "检测到原包为qssi 启用机型参数修复" 
-      brand=$(cat ./out/vendor/build.prop | grep 'ro.product.vendor.brand')
-      device=$(cat ./out/vendor/build.prop | grep 'ro.product.vendor.device')
-      manufacturer=$(cat ./out/vendor/build.prop | grep 'ro.product.vendor.manufacturer')
-      model=$(cat ./out/vendor/build.prop | grep 'ro.product.vendor.model')
-      mame=$(cat ./out/vendor/build.prop | grep 'ro.product.vendor.name')
+ manifest="./vintf/manifest.xml"
+
+ if [ ! $manifest = "" ];then
+  cp -frp $manifest ./temp/manifest.xml
+  rm -rf $manifest
+  while IFS= read -r line ;do
+  $flag && echo "$line" >> $manifest
+   if [ "$line" = "    </vendor-ndk>" ];then
+    flag=false
+   fi
+   if ! $flag && [ "$line" = "    <system-sdk>" ];then
+    flag=true 
+    cat ./make/add_etc/vintf/manifest1 >> $manifest
+    cat ./make/add_etc/vintf/manifest2 >> $manifest
+    echo "" >> $manifest
+    echo "$line" >> $manifest
+   fi
+  done < ./temp/manifest.xml
+ fi
+ cp -frp $manifest ./out/system/system/etc/vintf/
+ rm -rf ./vintf
+ rm -rf ./temp
+ rm -rf ./make/add_etc/vintf/*.bak
+
+ #usb通用化处理
+ cp -frp ./make/cp_usb/* ./out/system/
+
+ #selinux通用化处理
+ sed -i "/typetransition location_app/d" ./out/system/system/etc/selinux/plat_sepolicy.cil
+ sed -i '/vendor/d' ./out/system/system/etc/selinux/plat_property_contexts
+ sed -i 's/sys.usb.config          u:object_r:system_radio_prop:s0//g' ./out/system/system/etc/selinux/plat_property_contexts
+ sed -i 's/ro.build.fingerprint    u:object_r:fingerprint_prop:s0//g' ./out/system/system/etc/selinux/plat_property_contexts
+
+ #qssi机型修复
+ qssi (){
+  cat ./out/system/system/build.prop | grep -o 'qssi' > /dev/null 2>&1
+ }
+ if qssi ;then
+  echo "检测到原包为qssi 启用机型参数修复" 
   
-      echo "当前原包机型参数为:"
-      echo "$brand"
-      echo "$device"
-      echo "$manufacturer"
-      echo "$model"
-      echo "$mame"
-
-      echo "正在修复"
-      sed -i '/ro.product.system./d' $systemdir/build.prop
-      echo "" >> $systemdir/build.prop
-      echo "# 设备参数" >> $systemdir/build.prop
-      echo "$brand" >> $systemdir/build.prop
-      echo "$device" >> $systemdir/build.prop
-      echo "$manufacturer" >> $systemdir/build.prop
-      echo "$model" >> $systemdir/build.prop
-      echo "$mame" >> $systemdir/build.prop
-      sed -i 's/ro.product.vendor./ro.product.system./g' $systemdir/build.prop
-      echo "修复完成"
-    fi
-
-    # 为所有rom改用自适应apex更新支持状态
-    sed -i '/ro.apex.updatable/d' $systemdir/build.prop
-    sed -i '/ro.apex.updatable/d' $systemdir/product/build.prop
-    sed -i '/ro.apex.updatable/d' $systemdir/system_ext/build.prop
- 
-    # 为所有rom改用分辨率自适应
-    sed -i 's/ro.sf.lcd/#&/' $systemdir/build.prop
-    sed -i 's/ro.sf.lcd/#&/' $systemdir/product/build.prop
-    sed -i 's/ro.sf.lcd/#&/' $systemdir/system_ext/build.prop
-   
-    # 为所有rom启用CDM电话的系统属性
-    sed -i '/telephony.lteOnCdmaDevice/d' $systemdir/build.prop
-    sed -i '/telephony.lteOnCdmaDevice/d' $systemdir/product/build.prop
-    sed -i '/telephony.lteOnCdmaDevice/d' $systemdir/system_ext/build.prop
-    echo "" >> $systemdir/build.prop   
-    echo "# System prop to turn on CdmaLTEPhone always" >> $systemdir/build.prop
-    echo "telephony.lteOnCdmaDevice=1" >> $systemdir/build.prop
-    echo "" >> $systemdir/product/build.prop
-    echo "# System prop to turn on CdmaLTEPhone always" >> $systemdir/product/build.prop
-    echo "telephony.lteOnCdmaDevice=1" >> $systemdir/product/build.prop
-    echo "" >> $systemdir/system_ext/build.prop
-    echo "# System prop to turn on CdmaLTEPhone always" >> $systemdir/system_ext/build.prop
-    echo "telephony.lteOnCdmaDevice=1" >> $systemdir/system_ext/build.prop       
+  brand=$(cat ./out/vendor/build.prop | grep 'ro.product.vendor.brand')
+  device=$(cat ./out/vendor/build.prop | grep 'ro.product.vendor.device')
+  manufacturer=$(cat ./out/vendor/build.prop | grep 'ro.product.vendor.manufacturer')
+  model=$(cat ./out/vendor/build.prop | grep 'ro.product.vendor.model')
+  mame=$(cat ./out/vendor/build.prop | grep 'ro.product.vendor.name')
   
-    # 为所有rom清理一些无用属性
-    sed -i '/vendor.display/d' $systemdir/build.prop
-    sed -i '/vendor.perf/d' $systemdir/build.prop
-    sed -i '/debug.sf/d' $systemdir/build.prop
-    sed -i '/persist.sar.mode/d' $systemdir/build.prop
-    sed -i '/opengles.version/d' $systemdir/build.prop
+  echo "当前原包机型参数为:"
+  echo "$brand"
+  echo "$device"
+  echo "$manufacturer"
+  echo "$model"
+  echo "$mame"
+  
+  echo "正在修复"
+  sed -i '/ro.product.system./d' ./out/system/system/build.prop
+  echo "" >> ./out/system/system/build.prop
+  echo "#设备参数" >> ./out/system/system/build.prop
+  echo "$brand" >> ./out/system/system/build.prop
+  echo "$device" >> ./out/system/system/build.prop
+  echo "$manufacturer" >> ./out/system/system/build.prop
+  echo "$model" >> ./out/system/system/build.prop
+  echo "$mame" >> ./out/system/system/build.prop
+  sed -i 's/ro.product.vendor./ro.product./g' ./out/system/system/build.prop
+  echo "修复完成"
+ fi
 
-    # 为所有rom禁用product vndk version
-    sed -i '/product.vndk.version/d' $systemdir/product/build.prop
+ #build处理
+ sed -i '/ro.apex.updatable/d' ./out/system/system/build.prop
+ sed -i '/ro.apex.updatable/d' ./out/system/system/product/build.prop
+ echo "" >> ./out/system/system/build.prop
+ echo "#关闭apex更新" >> ./out/system/system/build.prop
+ echo "ro.apex.updatable=false" >> ./out/system/system/build.prop
+ sed -i 's/ro.product.system./ro.product./g' ./out/system/system/build.prop
+ #sed -i '/ro.build.ab_update/d' ./out/system/system/build.prop
+ sed -i '/system_root_image/d' ./out/system/system/build.prop
+ sed -i '/ro.control_privapp_permissions/d' ./out/system/system/build.prop 
+ sed -i 's/ro.sf.lcd/#&/' ./out/system/system/build.prop
+ sed -i 's/ro.sf.lcd/#&/' ./out/system/system/product/build.prop
+ cat ./make/add_build/build1 >> ./out/system/system/build.prop
+ cat ./make/add_build/build2 >> ./out/system/system/build.prop
+ rm -rf ./make/add_build/*.bak
 
-    # 为所有rom禁用caf media.setting
-    sed -i '/media.settings.xml/d' $systemdir/build.prop
+ mainkeys="$(grep 'qemu.hw.mainkeys=' ./out/system/system/build.prop)"
+ if [ $mainkeys ];then
+  sed -i 's/qemu.hw.mainkeys\=1/qemu.hw.mainkeys\=0/g' ./out/system/system/build.prop
+ else
+  echo "" >> ./out/system/system/build.prop
+  echo "#启用虚拟键" >> ./out/system/system/build.prop
+  echo "qemu.hw.mainkeys=0" >> ./out/system/system/build.prop
+ fi
 
-    # 为所有rom添加必要的通用属性
-    sed -i '/system_root_image/d' $systemdir/build.prop
-    sed -i '/ro.control_privapp_permissions/d' $systemdir/build.prop
-    sed -i '/ro.control_privapp_permissions/d' $systemdir/product/build.prop
-    sed -i '/ro.control_privapp_permissions/d' $systemdir/system_ext/build.prop  
-    cat ./make/add_build/add_build >> $systemdir/build.prop
-    cat ./make/add_build/add_product_build >> $systemdir/product/build.prop
-    cat ./make/add_build/add_system_ext_build >> $systemdir/system_ext/build.prop
+ #删除多余文件
+ rm -rf ./out/system/verity_key
+ rm -rf ./out/system/sbin/dashd
+ rm -rf ./out/system/system/recovery-from-boot.p
+ rm -rf ./out/system/system/recovery-from-boot.bak
+ rm -rf ./out/system/system/priv-app/com.qualcomm.location
+ rm -rf ./out/system/system/etc/permissions/qti_permissions.xml
 
-    # 为所有rom启用虚拟建
-    mainkeys() {
-      grep -q 'qemu.hw.mainkeys=' $systemdir/build.prop
-    }  
-    if mainkeys ;then
-      sed -i 's/qemu.hw.mainkeys\=1/qemu.hw.mainkeys\=0/g' $systemdir/build.prop
-    else
-      echo "" >> $systemdir/build.prop
-      echo "# 启用虚拟键" >> $systemdir/build.prop
-      echo "qemu.hw.mainkeys=0" >> $systemdir/build.prop
-    fi
+ #复制文件
+ cp -frp ./make/cp_bin/* ./out/system/system/bin/
+ cp -frp ./make/cp_etc/* ./out/system/system/etc/
 
-    # 为所有qssi原包修改默认设备参数读取
-    source_order() {
-      grep -q 'ro.product.property_source_order=' $systemdir/build.prop
-    }
-    if source_order ;then
-      sed -i '/ro.product.property\_source\_order\=/d' $systemdir/build.prop  
-      echo "" >> $systemdir/build.prop
-      echo "# 机型专有设备参数默认读取顺序" >> $systemdir/build.prop
-      echo "ro.product.property_source_order=system,product,system_ext,vendor,odm" >> $systemdir/build.prop
-    fi
-  }
-  build_modify
-
-  # 为所有rom还原fstab.postinstall
-  find  ./out/system/ -type f -name "fstab.postinstall" | xargs rm -rf
-  cp -frp ./make/fstab/system/* $systemdir
-  sed -i '/fstab\\.postinstall/d' $configdir/system_file_contexts
-  sed -i '/fstab.postinstall/d' $configdir/system_fs_config
-  cat ./make/add_fs/fstab_contexts >> $configdir/system_file_contexts
-  cat ./make/add_fs/fstab_fs >> $configdir/system_fs_config 
-
-  # 添加缺少的libs
-  cp -frpn ./make/add_libs/system/* $systemdir
+ #lib层处理
+ rm -rf ./out/system/system/lib/vndk-29 
+ rm -rf ./out/system/system/lib/vndk-sp-29
+ rm -rf ./out/system/system/lib64/vndk-29 
+ rm -rf ./out/system/system/lib64/vndk-sp-29
+ cp -frp ./make/cp_lib/* ./out/system/system/lib
+ cp -frp ./make/cp_lib64/* ./out/system/system/lib64
+ rm -rf ./out/system/system/lib/*.sh
+ rm -rf ./out/system/system/lib64/*.sh
+ cd ./make/cp_lib
+ ./add_lib_fs.sh
+ cd ../../
+ cd ./make/cp_lib64
+ ./add_lib64_fs.sh
+ cd ../../
+ sed -i '/vndk-29/ s/^/#/g' ./out/config/system_file_contexts
+ sed -i '/vndk-sp-29/ s/^/#/g' ./out/config/system_file_contexts
+ sed -i '/vndk-29/ s/^/#/g' ./out/config/system_fs_config
+ sed -i '/vndk-sp-29/ s/^/#/g' ./out/config/system_fs_config
+ #sed -i '/libdrm\.so/ s/^/#/g' ./out/config/system_file_contexts
+ sed -i '/libdrm.so/ s/^/#/g' ./out/config/system_fs_config
  
-  # 为default启用debug调试
-  sed -i 's/persist.sys.usb.config=none/persist.sys.usb.config=adb/g' $systemdir/etc/prop.default
-  sed -i 's/ro.debuggable=0/ro.debuggable=1/g' $systemdir/etc/prop.default
-  sed -i 's/ro.adb.secure=1/ro.adb.secure=0/g' $systemdir/etc/prop.default
-  echo "ro.force.debuggable=1" >> $systemdir/etc/prop.default
+ #default处理
+ sed -i 's/persist.sys.usb.config=none/persist.sys.usb.config=adb/g' ./out/system/system/etc/prop.default
+ #sed -i 's/ro.secure=1/ro.secure=0/g' ./out/system/system/etc/prop.default
+ sed -i 's/ro.debuggable=0/ro.debuggable=1/g' ./out/system/system/etc/prop.default
+ sed -i 's/ro.adb.secure=1/ro.adb.secure=0/g' ./out/system/system/etc/prop.default
+ echo "ro.force.debuggable=1" >> ./out/system/system/etc/prop.default
  
-  # 为default修补oem的SurfaceFlinger属性
-  if [ -e ./out/vendor/default.prop ];then
+ if [ -e ./out/vendor ];then
+  rm -rf ./default.txt
+  cat ./out/vendor/default.prop | grep 'surface_flinger' > /dev/null 2>&1
+ fi
+
+ default="$(find ./out/system/ -type f -name 'prop.default')"
+ if [ ! $default = "" ];then
+  if [ -e ./default.txt ];then
+   surface_flinger (){
+    default="$(find ./out/system/ -type f -name 'prop.default')"
+    cat $default | grep 'surface_flinger' > /dev/null 2>&1
+   }
+   if surface_flinger ;then
     rm -rf ./default.txt
-    cat ./out/vendor/default.prop | grep 'surface_flinger' > ./default.txt
+   else
+    echo "" >> $default
+    cat ./default.txt >> $default
+    rm -rf ./default.txt
+   fi
   fi
-  default="$(find $systemdir -type f -name 'prop.default')"
-  if [ ! $default = "" ];then
-    if [ -e ./default.txt ];then
-      surface_flinger() {
-        default="$(find $systemdir -type f -name 'prop.default')"
-        cat $default | grep -q 'surface_flinger'
-      }
-      if surface_flinger ;then
-        rm -rf ./default.txt
-      else
-        echo "" >> $default
-        cat ./default.txt >> $default
-        rm -rf ./default.txt
-      fi
-    fi
-  fi
+ fi
 
-  # 为所有rom删除qti_permissions
-  find $systemdir -type f -name "qti_permissions.xml" | xargs rm -rf
+ #phh化处理
+ cp -frp ./make/cp_phh/bin/* ./out/system/system/bin/
+ cp -frp ./make/cp_phh/etc/* ./out/system/system/etc/
+ cp -frp ./make/cp_phh/framework/* ./out/system/system/framework/
+ #cp -frp ./make/cp_phh/lib/* ./out/system/system/lib/
+ cp -frp ./make/cp_phh/lib64/* ./out/system/system/lib64/
+ #rm -rf ./out/system/system/lib/*.sh
+ rm -rf ./out/system/system/lib64/*.sh
+ #cd ./make/cp_phh/lib
+ #./add_phh_lib_fs.sh
+ #cd ../../../
+ cd ./make/cp_phh/lib64
+ ./add_phh_lib64_fs.sh
+ cd ../../../
 
-  # 为所有rom删除firmware
-  find $systemdir -type d -name "firmware" | xargs rm -rf
-
-  # 为所有rom删除avb
-  find $systemdir -type d -name "avb" | xargs rm -rf
-  
-  # 为所有rom删除com.qualcomm.location
-  find $systemdir -type d -name "com.qualcomm.location" | xargs rm -rf
-
-  # 为所有rom删除多余文件
-  rm -rf ./out/system/verity_key
-  rm -rf ./out/system/init.recovery*
-  rm -rf $systemdir/recovery-from-boot.*
-
-  # 为所有rom patch system
-  cp -frp ./make/system_patch/system/* $systemdir/
-
-  # 为所有rom做phh化处理
-  cp -frp ./make/add_phh/system/* $systemdir/
-
-  # 为phh化注册必要selinux上下文
-  cat ./make/add_phh_plat_file_contexts/plat_file_contexts >> $systemdir/etc/selinux/plat_file_contexts
-
-  # 为添加的文件注册必要的selinux上下文
-  cat ./make/add_plat_file_contexts/plat_file_contexts >> $systemdir/etc/selinux/plat_file_contexts
-
-  # 为所有rom的相机修改为aosp相机
-  cd ./make/camera
-  ./camera.sh
-  cd $LOCALDIR
-
-  # 系统种类检测
-  cd ./make
-  ./romtype.sh
-  cd $LOCALDIR 
-
-  # rom修补处理
-  cd ./make/rom_make_patch
-  ./make.sh 
-  cd $LOCALDIR
-
-  # oem_build合并
-  cat ./make/add_build/add_oem_build >> $systemdir/build.prop
-
-  # 为rom添加oem服务所依赖的hal接口
-  rm -rf ./vintf
-  mkdir ./vintf
-  cp -frp $systemdir/etc/vintf/manifest.xml ./vintf/
-  manifest="./vintf/manifest.xml"
-  sed -i '/<\/manifest>/d' $manifest
-  cat ./make/add_etc_vintf_patch/manifest_common >> $manifest
-  cat ./make/add_etc_vintf_patch/manifest_custom >> $manifest
-  echo "" >> $manifest
-  echo "</manifest>" >> $manifest
-  cp -frp $manifest $systemdir/etc/vintf/
-  rm -rf ./vintf
-  
-  # fs数据整合
-  cat ./make/add_fs/vndk_symlink_contexts >> $configdir/system_file_contexts
-  cat ./make/add_fs/vndk_symlink_fs >> $configdir/system_fs_config  
-  cat ./make/add_fs/bin_contexts >> $configdir/system_file_contexts 
-  cat ./make/add_fs/bin_fs >> $configdir/system_fs_config 
-  cat ./make/add_fs/etc_contexts >> $configdir/system_file_contexts 
-  cat ./make/add_fs/etc_fs >> $configdir/system_fs_config 
-  cat ./make/add_phh_fs/contexts >> $configdir/system_file_contexts
-  cat ./make/add_phh_fs/fs >> $configdir/system_fs_config
-  rm -rf ./make/lib_fs
-  mkdir ./make/lib_fs
-
-  lib_fs="$LOCALDIR/make/lib_fs/fs"
-  lib_contexts="$LOCALDIR/make/lib_fs/contexts"
+ #为phh化注册必要的selinux上下文
+ cat ./make/add_phh/plat_file_contexts >> ./out/system/system/etc/selinux/plat_file_contexts
  
-  rm -rf $lib_fs
-  rm -rf $lib_contexts
-  sed -i '/\/system\/system\/lib\//d' $configdir/system_file_contexts
-  sed -i '/system\/system\/lib\//d' $configdir/system_fs_config
-  sed -i '/\/system\/system\/lib64\//d' $configdir/system_file_contexts
-  sed -i '/system\/system\/lib64\//d' $configdir/system_fs_config
-  
-  cd $systemdir/lib
-  libs=$(find ./ -name "*")
-  for lib in $libs ;do
-    if [ -d "$lib" ];then
-      echo "$lib" | sed 's#\./#/#g' | sed 's/^/&system\/system\/lib/g' | sed 's/$/& 0 0 0755/g' >> $lib_fs
-      echo "$lib" | sed 's#\./#/#g' | sed 's/^/&\/system\/system\/lib/g' | sed 's/$/& u:object_r:system_lib_file:s0/g' >> $lib_contexts
-    fi
+ #fs数据整合
+ cat ./make/add_fs/contexts >> ./out/config/system_file_contexts
+ cat ./make/add_fs/fs >> ./out/config/system_fs_config
+ cat ./make/add_phh_fs/contexts >> ./out/config/system_file_contexts
+ cat ./make/add_phh_fs/fs >> ./out/config/system_fs_config
+ cat ./make/add_logcat_fs/contexts >> ./out/config/system_file_contexts
+ cat ./make/add_logcat_fs/fs >> ./out/config/system_fs_config
+ cd ./make/new_fs
+ ./mergefs.sh
+ cd ../../
+ 
+ #亮度修复
+  echo "启用亮度修复"
+  cp -frp $(find ./out/system/ -type f -name 'services.jar') ./fixbug/lightfix/
+  cd ./fixbug/lightfix
+  ./brightness_fix.sh
+  dist="$(find ./services.jar.out/ -type d -name 'dist')"
+  if [ ! $dist = "" ];then
+   cp -frp $dist/services.jar ../../out/system/system/framework/
+  fi
+  cd ../../
+ 
+ #bug修复
+  echo "启用bug修复"
+  cd ./fixbug
+   ./fixbug.sh
+   cd ../
+ 
+ echo "SGSI化处理完成"
+ rm -rf ./make/new_fs
+ ./makeimg.sh
 
-    if [ -L "$lib" ];then
-      echo "$lib" | sed 's#\./#/#g' | sed 's/^/&system\/system\/lib/g' | sed 's/$/& 0 0 0644/g' >> $lib_fs
-      echo "$lib" | sed 's#\./#/#g' | sed 's/^/&\/system\/system\/lib/g' | sed 's/$/& u:object_r:system_lib_file:s0/g' >> $lib_contexts
-    fi 
-
-    if [ -f "$lib" ];then
-      echo "$lib" | sed 's#\./#/#g' | sed 's/^/&system\/system\/lib/g' | sed 's/$/& 0 0 0644/g' >> $lib_fs
-      echo "$lib" | sed 's#\./#/#g' | sed 's/^/&\/system\/system\/lib/g' | sed 's/$/& u:object_r:system_lib_file:s0/g' >> $lib_contexts
-    fi 
-  done
-  cd $LOCALDIR
-
-  cd $systemdir/lib64
-  libs=$(find ./ -name "*")
-  for lib in $libs ;do
-    if [ -d "$lib" ];then
-      echo "$lib" | sed 's#\./#/#g' | sed 's/^/&system\/system\/lib64/g' | sed 's/$/& 0 0 0755/g' >> $lib_fs
-      echo "$lib" | sed 's#\./#/#g' | sed 's/^/&\/system\/system\/lib64/g' | sed 's/$/& u:object_r:system_lib_file:s0/g' >> $lib_contexts
-    fi
-
-    if [ -L "$lib" ];then
-      echo "$lib" | sed 's#\./#/#g' | sed 's/^/&system\/system\/lib64/g' | sed 's/$/& 0 0 0644/g' >> $lib_fs
-      echo "$lib" | sed 's#\./#/#g' | sed 's/^/&\/system\/system\/lib64/g' | sed 's/$/& u:object_r:system_lib_file:s0/g' >> $lib_contexts
-    fi 
-
-    if [ -f "$lib" ];then
-      echo "$lib" | sed 's#\./#/#g' | sed 's/^/&system\/system\/lib64/g' | sed 's/$/& 0 0 0644/g' >> $lib_fs
-      echo "$lib" | sed 's#\./#/#g' | sed 's/^/&\/system\/system\/lib64/g' | sed 's/$/& u:object_r:system_lib_file:s0/g' >> $lib_contexts
-    fi 
-  done
-  cd $LOCALDIR
-  sed -i '1d' $lib_fs
-  sed -i '1d' $lib_contexts
-  cat $lib_contexts >> $configdir/system_file_contexts
-  cat $lib_fs >> $configdir/system_fs_config
 }
 
-function dynamic() {
-  rm -rf ./make/add_dynamic_fs
-  mkdir ./make/add_dynamic_fs
+function mandatory_pt (){
 
-  # 复制fs至make目录
-  rm -rf ./make/config
-  mkdir ./make/config
-  cp -frp $configdir/* ./make/config/
-  mv ./make/config/system_fs_config ./make/config/system_fs
-  mv ./make/config/system_file_contexts ./make/config/system_contexts
-  if [ -L $systemdir/system_ext ] && [ -d $systemdir/../system_ext ];then
-    mv ./make/config/system_ext_fs_config ./make/config/system_ext_fs 
-    mv ./make/config/system_ext_file_contexts ./make/config/system_ext_contexts
+ echo "当前为无pt 启用强制pt处理方案"
+
+ read -p "按任意键开始处理" var
+ echo "SGSI化处理开始......."
+
+ #分离vendor
+ mv ./out/system/system/vendor/ ./out/
+ 
+ #prop.default还原
+ cp -frp ./out/system/default.prop ./out/system/system/etc/prop.default
+ 
+ #fs修改
+ sed -i '/\/system\/system\/vendor/d' ./out/config/system_file_contexts
+ sed -i '/system\/system\/vendor/d' ./out/config/system_fs_config
+ echo "/system/system/etc/prop\.default u:object_r:system_file:s0" >> ./out/config/system_file_contexts
+ echo "/system/system/etc/ld\.config\.29\.txt u:object_r:system_linker_config_file:s0" >> ./out/config/system_file_contexts
+ echo "system/system/etc/prop.default 0 0 0600" >> ./out/config/system_fs_config
+ echo "system/system/etc/ld.config.29.txt 0 0 0644 " >> ./out/config/system_fs_config
+
+ echo "正在修改system外层"
+ cd ./make/ab_boot
+ ./ab_boot.sh
+ cd ../../
+ rm -rf ./out/system/sepolicy
+ rm -rf ./out/system/vendor_service_contexts
+ echo "修改完成"
+  
+ #apex处理
+ rm -rf ./make/apex
+ apex_check (){
+ cd ./out/system/system/apex
+ ls
+ cd ../../../../
+ }
+ apex_file (){
+  apex_check | grep '.apex' > /dev/null 2>&1
+ }
+ if apex_file ;then
+  echo "正在apex扁平化处理"
+  ./apex.sh
+  apex
+  find ./out/system/system/apex/ -type f -name "*.apex" -delete
+ fi
+ cp -frp ./make/apex_patch/* ./out/system/system/apex/
+ 
+ #oppo检测
+ if [ -e ./out/vendor/euclid/ ];then
+  echo "检测到OPPO_Color 启用专用处理......."
+  ./oppo.sh
+  echo "处理完成 请检查细节部分"
+ else
+  if [ -e ./out/vendor/oppo/ ];then  
+   echo "检测到OPPO_Color 启用专用处理......."
+   ./oppo.sh
+   echo "处理完成 请检查细节部分"
   fi
-  if [ -L $systemdir/product ] && [ -d $systemdir/../product ];then
-    mv ./make/config/product_file_contexts ./make/config/product_contexts
-    mv ./make/config/product_fs_config ./make/config/product_fs
-  fi
+ fi
 
-  # 复制makefs至dynamic_fs目录
-  cp -frp ./make/config/* ./make/add_dynamic_fs/
-  mv ./make/add_dynamic_fs/system_contexts ./make/add_dynamic_fs/contexts
-  mv ./make/add_dynamic_fs/system_fs ./make/add_dynamic_fs/fs
-  rm -rf ./make/config
+ #重置make
+ echo "正在重置make文件夹数据....."
+ true > ./make/add_etc/vintf/manifest2
+ echo "" >> ./make/add_etc/vintf/manifest2
+ echo "<!-- oem自定义接口 -->" >> ./make/add_etc/vintf/manifest2
 
-  merge_system_ext() {
-    # 合并system_ext
-    rm -rf $systemdir/system_ext
-    rm -rf ./out/system_ext/lost+found
-    mv ./out/system_ext $systemdir/
-
-    # fs分段
-    cat ./make/add_dynamic_fs/system_ext_fs | grep 'system_ext/lib' > ./make/add_dynamic_fs/system_ext_lib_fs
-    sed -i '/system_ext\/lib/d' ./make/add_dynamic_fs/system_ext_fs
-    cat ./make/add_dynamic_fs/system_ext_lib_fs | grep '0 0 0644 /system_ext' > ./make/add_dynamic_fs/system_ext_symlink_fs
-    sed -i '/0 0 0644 \/system_ext/d' ./make/add_dynamic_fs/system_ext_lib_fs
+ true > ./make/add_build/build2
+ echo "" >> ./make/add_build/build2
+ echo "#oem厂商自定义属性" >> ./make/add_build/build2
  
-    ## fs数据处理
-    sed -i '1d' ./make/add_dynamic_fs/system_ext_contexts
-    sed -i '1d' ./make/add_dynamic_fs/system_ext_fs
+ echo "" > /dev/null 2>&1
  
-    # contexts
-    sed -i 's#/system_ext #/system/system/system_ext #g' ./make/add_dynamic_fs/system_ext_contexts
-    sed -i 's#/system_ext/#/system/system/system_ext/#g' ./make/add_dynamic_fs/system_ext_contexts
-    sed -i '/build/d' ./make/add_dynamic_fs/system_ext_contexts
-    echo "/system/system/system_ext/build\.prop u:object_r:system_file:s0" >> ./make/add_dynamic_fs/system_ext_contexts
-
-    # fs
-    sed -i 's#system_ext #system/system/system_ext #g' ./make/add_dynamic_fs/system_ext_fs
-    sed -i 's#system_ext/#system/system/system_ext/#g' ./make/add_dynamic_fs/system_ext_fs
+ #系统种类检测
+ cd ./make
+ ./romtype.sh
+ cd ../
  
-    # lib_fs
-    sed -i 's#system_ext/#system/system/system_ext/#g' ./make/add_dynamic_fs/system_ext_lib_fs
+ #抓logcat
+ cp -frp ./make/cp_logcat/bin/* ./out/system/system/bin/
+ cp -frp ./make/cp_logcat/etc/* ./out/system/system/etc/
 
-    # symlink_fs
-    sed -i 's#/system_ext/#/system/system_ext/#g' ./make/add_dynamic_fs/system_ext_symlink_fs
-    sed -i 's#system_ext/#system/system/system_ext/#g' ./make/add_dynamic_fs/system_ext_symlink_fs
-    sed -i 's#/system/system/system/system_ext/#/system/system_ext/#g' ./make/add_dynamic_fs/system_ext_symlink_fs
-
-    # 合并system_ext_fs
-    cat ./make/add_dynamic_fs/system_ext_contexts >> ./make/add_dynamic_fs/contexts
-    cat ./make/add_dynamic_fs/system_ext_symlink_fs >> ./make/add_dynamic_fs/fs
-    cat ./make/add_dynamic_fs/system_ext_lib_fs >> ./make/add_dynamic_fs/fs
-    cat ./make/add_dynamic_fs/system_ext_fs >> ./make/add_dynamic_fs/fs
-  }
-
-  merge_product() {
-    # 合并product
-    rm -rf $systemdir/product
-    rm -rf ./out/product/lost+found
-    mv ./out/product $systemdir/
+ #manifest.xml处理
+ rm -rf ./vintf
+ mkdir ./vintf
+ cp -frp $(find ./out/system/ -type f -name 'manifest.xml') ./vintf/
  
-    # fs分段
-    cat ./make/add_dynamic_fs/product_fs | grep 'product/lib' > ./make/add_dynamic_fs/product_lib_fs
-    sed -i '/product\/lib/d' ./make/add_dynamic_fs/product_fs
-    cat ./make/add_dynamic_fs/product_lib_fs | grep '0 0 0644 /product' > ./make/add_dynamic_fs/product_symlink_fs
-    sed -i '/0 0 0644 \/product/d' ./make/add_dynamic_fs/product_lib_fs
+ manifest="./vintf/manifest.xml"
  
-    # fs数据处理
-    sed -i '1d' ./make/add_dynamic_fs/product_contexts
-    sed -i '1d' ./make/add_dynamic_fs/product_fs
+ sed -i '/<\/manifest>/d' $manifest
+ cat ./make/add_etc/vintf/manifest1 >> ./vintf/manifest.xml
+ cat ./make/add_etc/vintf/manifest2 >> ./vintf/manifest.xml
+ echo "" >> $manifest
+ echo "</manifest>" >> $manifest
+ cp -frp $manifest ./out/system/system/etc/vintf/
+ rm -rf ./vintf
+ rm -rf ./make/add_etc/vintf/*.bak
+
+ #链接还原
+ ln -s /vendor ./vendor
+ mv ./vendor ./out/system/system/
  
-    # contexts
-    sed -i 's#/product #/system/system/product #g' ./make/add_dynamic_fs/product_contexts
-    sed -i 's#/product/#/system/system/product/#g' ./make/add_dynamic_fs/product_contexts
-    sed -i '/build/d' ./make/add_dynamic_fs/product_contexts
-    echo "/system/system/product/build\.prop u:object_r:system_file:s0" >> ./make/add_dynamic_fs/product_contexts
+ #usb通用化处理
+ cp -frp ./make/cp_usb/* ./out/system/
 
-    # fs
-    sed -i 's#product #system/system/product #g' ./make/add_dynamic_fs/product_fs
-    sed -i 's#product/#system/system/product/#g' ./make/add_dynamic_fs/product_fs
+ #selinux通用化处理
+ sed -i "/typetransition location_app/d" ./out/system/system/etc/selinux/plat_sepolicy.cil
+ sed -i '/vendor/d' ./out/system/system/etc/selinux/plat_property_contexts
+ sed -i 's/sys.usb.config          u:object_r:system_radio_prop:s0//g' ./out/system/system/etc/selinux/plat_property_contexts
+ sed -i 's/ro.build.fingerprint    u:object_r:fingerprint_prop:s0//g' ./out/system/system/etc/selinux/plat_property_contexts
+
+#qssi机型修复
+ qssi (){
+  cat ./out/system/system/build.prop | grep -o 'qssi' > /dev/null 2>&1
+ }
+ if qssi ;then
+  echo "检测到原包为qssi 启用机型参数修复" 
+  
+  brand=$(cat ./out/vendor/build.prop | grep 'ro.product.vendor.brand')
+  device=$(cat ./out/vendor/build.prop | grep 'ro.product.vendor.device')
+  manufacturer=$(cat ./out/vendor/build.prop | grep 'ro.product.vendor.manufacturer')
+  model=$(cat ./out/vendor/build.prop | grep 'ro.product.vendor.model')
+  mame=$(cat ./out/vendor/build.prop | grep 'ro.product.vendor.name')
+  
+  echo "当前原包机型参数为:"
+  echo "$brand"
+  echo "$device"
+  echo "$manufacturer"
+  echo "$model"
+  echo "$mame"
+  
+  echo "正在修复"
+  sed -i '/ro.product.system./d' ./out/system/system/build.prop
+  echo "" >> ./out/system/system/build.prop
+  echo "#设备参数" >> ./out/system/system/build.prop
+  echo "$brand" >> ./out/system/system/build.prop
+  echo "$device" >> ./out/system/system/build.prop
+  echo "$manufacturer" >> ./out/system/system/build.prop
+  echo "$model" >> ./out/system/system/build.prop
+  echo "$mame" >> ./out/system/system/build.prop
+  sed -i 's/ro.product.vendor./ro.product./g' ./out/system/system/build.prop
+  echo "修复完成"
+ fi
+
+ #build处理
+ sed -i '/ro.apex.updatable/d' ./out/system/system/build.prop
+ sed -i '/ro.apex.updatable/d' ./out/system/system/product/build.prop
+ echo "" >> ./out/system/system/build.prop
+ echo "#关闭apex更新" >> ./out/system/system/build.prop
+ echo "ro.apex.updatable=false" >> ./out/system/system/build.prop
+ sed -i 's/ro.product.system./ro.product./g' ./out/system/system/build.prop
+ sed -i 's/ro.treble.enabled=false/ro.treble.enabled=true/g' ./out/system/system/build.prop
+ #sed -i '/ro.build.ab_update/d' ./out/system/system/build.prop
+ sed -i '/system_root_image/d' ./out/system/system/build.prop
+ sed -i '/ro.control_privapp_permissions/d' ./out/system/system/build.prop 
+ sed -i 's/ro.sf.lcd/#&/' ./out/system/system/build.prop
+ sed -i 's/ro.sf.lcd/#&/' ./out/system/system/product/build.prop
+ sed -i '/debug.sf/d' ./out/system/system/build.prop
+ sed -i '/hbm/d' ./out/system/system/build.prop
+ cat ./make/add_build/build1 >> ./out/system/system/build.prop
+ #cat ./make/add_build/build2 >> ./out/system/system/build.prop
+ rm -rf ./make/add_build/*.bak
+
+ mainkeys="$(grep 'qemu.hw.mainkeys=' ./out/system/system/build.prop)"
+ if [ $mainkeys ];then
+  sed -i 's/qemu.hw.mainkeys\=1/qemu.hw.mainkeys\=0/g' ./out/system/system/build.prop
+ else
+  echo "" >> ./out/system/system/build.prop
+  echo "#启用虚拟键" >> ./out/system/system/build.prop
+  echo "qemu.hw.mainkeys=0" >> ./out/system/system/build.prop
+ fi
  
-    # lib_fs
-    sed -i 's#product/#system/system/product/#g' ./make/add_dynamic_fs/product_lib_fs
+ #删除多余文件
+ rm -rf ./out/system/verity_key
+ rm -rf ./out/system/sbin/dashd
+ rm -rf ./out/system/system/etc/firmware
+ rm -rf ./out/system/system/etc/ld.config.txt
+ rm -rf ./out/system/system/recovery-from-boot.p
+ rm -rf ./out/system/system/recovery-from-boot.bak
+ rm -rf ./out/system/system/priv-app/com.qualcomm.location
+ rm -rf ./out/system/system/etc/permissions/qti_permissions.xml
 
-    # symlink_fs
-    sed -i 's#/product/#/system/product/#g' ./make/add_dynamic_fs/product_symlink_fs
-    sed -i 's#product/#system/system/product/#g' ./make/add_dynamic_fs/product_symlink_fs
-    sed -i 's#/system/system/system/product/#/system/product/#g' ./make/add_dynamic_fs/product_symlink_fs
+ #复制文件
+ cp -frp ./make/cp_bin/* ./out/system/system/bin/
+ cp -frp ./make/cp_etc/* ./out/system/system/etc/
 
-    # 合并product_fs
-    cat ./make/add_dynamic_fs/product_contexts >> ./make/add_dynamic_fs/contexts
-    cat ./make/add_dynamic_fs/product_symlink_fs >> ./make/add_dynamic_fs/fs
-    cat ./make/add_dynamic_fs/product_lib_fs >> ./make/add_dynamic_fs/fs
-    cat ./make/add_dynamic_fs/product_fs >> ./make/add_dynamic_fs/fs
-  }
-  if [ -L $systemdir/system_ext ] && [ -d $systemdir/../system_ext ];then
-    merge_system_ext
-  fi
-  if [ -L $systemdir/product ] && [ -d $systemdir/../product ];then
-    merge_product
-  fi
+ #lib层处理
+ rm -rf ./out/system/system/lib/vndk-29 
+ rm -rf ./out/system/system/lib/vndk-sp-29
+ rm -rf ./out/system/system/lib64/vndk-29 
+ rm -rf ./out/system/system/lib64/vndk-sp-29
+ cp -frp ./make/cp_lib/* ./out/system/system/lib
+ cp -frp ./make/cp_lib64/* ./out/system/system/lib64
+ rm -rf ./out/system/system/lib/*.sh
+ rm -rf ./out/system/system/lib64/*.sh
+ cd ./make/cp_lib
+ ./add_lib_fs.sh
+ cd ../../
+ cd ./make/cp_lib64
+ ./add_lib64_fs.sh
+ cd ../../
+ sed -i '/vndk-29/ s/^/#/g' ./out/config/system_file_contexts
+ sed -i '/vndk-sp-29/ s/^/#/g' ./out/config/system_file_contexts
+ sed -i '/vndk-29/ s/^/#/g' ./out/config/system_fs_config
+ sed -i '/vndk-sp-29/ s/^/#/g' ./out/config/system_fs_config
+ #sed -i '/libdrm\.so/ s/^/#/g' ./out/config/system_file_contexts
+ sed -i '/libdrm.so/ s/^/#/g' ./out/config/system_fs_config
+ 
+ #default处理
+ sed -i 's/persist.sys.usb.config=none/persist.sys.usb.config=adb/g' ./out/system/system/etc/prop.default
+ #sed -i 's/ro.secure=1/ro.secure=0/g' ./out/system/system/etc/prop.default
+ sed -i 's/ro.debuggable=0/ro.debuggable=1/g' ./out/system/system/etc/prop.default
+ sed -i 's/ro.adb.secure=1/ro.adb.secure=0/g' ./out/system/system/etc/prop.default
+ echo "ro.force.debuggable=1" >> ./out/system/system/etc/prop.default
+ sed -i '/ro.control_privapp_permissions/d' ./out/system/system/etc/prop.default
 
-  # 替换原fs
-  mv ./make/add_dynamic_fs/contexts ./make/add_dynamic_fs/system_file_contexts 
-  mv ./make/add_dynamic_fs/fs ./make/add_dynamic_fs/system_fs_config
-  cp -frp ./make/add_dynamic_fs/system_file_contexts $configdir/system_file_contexts
-  cp -frp ./make/add_dynamic_fs/system_fs_config $configdir/system_fs_config  
+ #phh化处理
+ cp -frp ./make/cp_phh/bin/* ./out/system/system/bin/
+ cp -frp ./make/cp_phh/etc/* ./out/system/system/etc/
+ cp -frp ./make/cp_phh/framework/* ./out/system/system/framework/
+ #cp -frp ./make/cp_phh/lib/* ./out/system/system/lib/
+ cp -frp ./make/cp_phh/lib64/* ./out/system/system/lib64/
+ #rm -rf ./out/system/system/lib/*.sh
+ rm -rf ./out/system/system/lib64/*.sh
+ #cd ./make/cp_phh/lib
+ #./add_phh_lib_fs.sh
+ #cd ../../../
+ cd ./make/cp_phh/lib64
+ ./add_phh_lib64_fs.sh
+ cd ../../../
+
+ #为phh化注册必要的selinux上下文
+ cat ./make/add_phh/plat_file_contexts >> ./out/system/system/etc/selinux/plat_file_contexts
+
+ #fs数据整合
+ cat ./make/add_fs/contexts >> ./out/config/system_file_contexts
+ cat ./make/add_fs/fs >> ./out/config/system_fs_config
+ cat ./make/add_phh_fs/contexts >> ./out/config/system_file_contexts
+ cat ./make/add_phh_fs/fs >> ./out/config/system_fs_config
+ cat ./make/add_logcat_fs/contexts >> ./out/config/system_file_contexts
+ cat ./make/add_logcat_fs/fs >> ./out/config/system_fs_config
+ cd ./make/new_fs
+ ./mergefs.sh
+ cd ../../
+ 
+ #亮度修复
+ echo "启用亮度修复"
+ cp -frp $(find ./out/system/ -type f -name 'services.jar') ./fixbug/lightfix/
+ cd ./fixbug/lightfix
+ ./brightness_fix.sh
+ dist="$(find ./services.jar.out/ -type d -name 'dist')"
+ if [ ! $dist = "" ];then
+  cp -frp $dist/services.jar ../../out/system/system/framework/
+ fi
+ cd ../../
+
+ echo "启用bug修复"
+ cd ./fixbug
+ ./fixbug.sh
+ cd ../
+ echo "SGSI化处理完成"
+ rm -rf ./make/new_fs
+ ./makeimg.sh
+ 
 }
 
-function make_Aonly() {
-
-  echo "正在制造A-onlay"
-  
-  # 为所有rom去除ab特性
-  ## build
-  sed -i '/system_root_image/d' $systemdir/build.prop
-  sed -i '/ro.build.ab_update/d' $systemdir/build.prop
-  sed -i '/sar/d' $systemdir/build.prop
-
-  ## 删除多余文件
-  rm -rf $systemdir/etc/init/update_engine.rc
-  rm -rf $systemdir/etc/init/update_verifier.rc
-  rm -rf $systemdir/etc/update_engine
-  rm -rf $systemdir/bin/update_engine
-  rm -rf $systemdir/bin/update_verifier
-
-  # 修补oem的rc
-  oemrc_files=$(ls $systemdir/../ | grep ".rc$")
-  for oemrc in $oemrc_files ;do
-    new_oemrc=$(echo "${oemrc%.*}" | sed 's/$/&-treble.rc/g')
-    cp -fr $systemdir/../$oemrc $systemdir/etc/init/$new_oemrc
-    # 清理new_oemrc中的错误导入
-    for i in $systemdir/etc/init/$new_oemrc ;do 
-      echo "$(cat $i | grep -v "^import")" > $i 
-    done
-    # 为新的rc添加fs数据
-    echo "/system/system/etc/init/$new_oemrc u:object_r:system_file:s0" >> $configdir/system_file_contexts
-    echo "system/system/etc/init/$new_oemrc 0 0 0644" >> $configdir/system_fs_config
-  done
-
-  # 为所有rom禁用/system/etc/init/ueventd.rc
-  rm -rf $systemdir/etc/init/ueventd.rc
-
-  # 为所有rom改用内核自带的init.usb.rc
-  rm -rf $systemdir/etc/init/hw/init.usb.rc
-  rm -rf $systemdir/etc/init/hw/init.usb.configfs.rc
-  sed -i '/\/system\/etc\/init\/hw\/init.usb.rc/d' $systemdir/etc/init/hw/init.rc
-  sed -i '/\/system\/etc\/init\/hw\/init.usb.configfs.rc/d' $systemdir/etc/init/hw/init.rc
-
-  # 去除init.environ.rc重复导入
-  sed -i '/\/init.environ.rc/d' $systemdir/etc/init/hw/init.rc
-  
-  modify_init_environ() {
-    # 修改init.environ.rc
-    sed -i 's/on early\-init/on init/g' $systemdir/etc/init/init.environ-treble.rc
-    sed -i '/ANDROID\_BOOTLOGO/d' $systemdir/etc/init/init.environ-treble.rc
-    sed -i '/ANDROID\_ROOT/d' $systemdir/etc/init/init.environ-treble.rc
-    sed -i '/ANDROID\_ASSETS/d' $systemdir/etc/init/init.environ-treble.rc
-    sed -i '/ANDROID\_DATA/d' $systemdir/etc/init/init.environ-treble.rc
-    sed -i '/ANDROID\_STORAGE/d' $systemdir/etc/init/init.environ-treble.rc
-    sed -i '/EXTERNAL\_STORAGE/d' $systemdir/etc/init/init.environ-treble.rc
-    sed -i '/ASEC\_MOUNTPOINT/d' $systemdir/etc/init/init.environ-treble.rc
-  }
-  if [ -f $systemdir/etc/init/init.environ-treble.rc ];then
-    modify_init_environ
-  else
-    echo "此rom不支持制造A-only"
-    exit  
-  fi
-
-  # 为老设备迁移 /system/etc/hw/*.rc 至 /system/etc/init/
-  old_rc_flies=$(ls $systemdir/etc/init/hw)
-  for old_rc in $old_rc_flies ;do
-    new_rc=$(echo "${old_rc%.*}" | sed 's/$/&-treble.rc/g')
-    cp -frp $systemdir/etc/init/hw/$old_rc $system/etc/init/$new_rc
-  done 
-  
-  # 添加启动A-only必备文件 
-  cp -frp ./make/init_A/system/* $systemdir
-
-  # fs数据整合
-  cat ./make/add_fs/init-A_fs >> $configdir/system_fs_config
-  cat ./make/add_fs/init-A_contexts >> $configdir/system_file_contexts
-}
-
-make_type=$1
-
-if [[ -L $systemdir/system_ext && -d $systemdir/../system_ext ]] \
-|| [[ -L $systemdir/product && -d $systemdir/../product ]];then
-  echo "检测到当前为动态原包，启用动态原包处理"
-  if [ -e ./system_ext.img ];then
-    echo "解压system_ext.img中..."
-    python3 $bin/imgextractor.py ./system_ext.img ./out
-    if [ $? = "1" ];then
-      echo "system_ext.img解压失败！"
-      exit
-    else
-      echo "解压完成"
-    fi
-  fi 
-  if [ -e ./product.img ];then
-    echo "解压product.img中..."
-    python3 $bin/imgextractor.py ./product.img ./out
-    if [ $? = "1" ];then
-      echo "product.img解压失败！"
-      exit
-    else
-      echo "解压完成"
-    fi
-  fi
-  dynamic
+if [ -L ./out/system/vendor ];then
+ mandatory_pt
+else
+ normal
 fi
+
+echo "正在清理工作目录"
+
+if [ -e ./tmp/payload.bin ];then
+ rm -rf ./tmp/*.bin
+fi
+
+mv ./tmp/*.zip ./
+rm -rf ./tmp/*
+rm -rf ./compatibility.zip
+mv ./*.zip ./tmp/
