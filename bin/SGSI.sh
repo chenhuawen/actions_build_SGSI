@@ -1,8 +1,30 @@
 #!/bin/bash
 
-#by 迷路的小新大大
+# Copyright (C) 2020 Xiaoxindada <2245062854@qq.com>
 
+LOCALDIR=`cd "$( dirname $0 )" && pwd`
+cd $LOCALDIR
 source ./bin.sh
+
+systemdir="$LOCALDIR/out/system/system"
+configdir="$LOCALDIR/out/config"
+
+Usage() {
+cat <<EOT
+Usage:
+$0 AB|ab or $0 A|a
+EOT
+}
+
+case $1 in 
+  "AB"|"ab"|"A"|"a")
+    echo "" > /dev/null 2>&1
+    ;;
+  *)
+    Usage
+    exit
+    ;;
+esac
 
 #静态制作
 
@@ -137,6 +159,11 @@ function normal (){
  echo "" >> ./make/add_build/build2
  echo "#oem厂商自定义属性" >> ./make/add_build/build2
 
+ true > ./make/add_build/build3
+ echo "" >> ./make/add_build/build3
+ echo "#oem厂商odm自定义属性" >> ./make/add_build/build3
+ echo "重置完成"
+
  echo "" > /dev/null 2>&1
  
  #系统种类检测
@@ -221,7 +248,7 @@ function normal (){
   sed -i 's/ro.product.vendor./ro.product./g' ./out/system/system/build.prop
   echo "修复完成"
  fi
-
+ 
  #build处理
  sed -i '/ro.apex.updatable/d' ./out/system/system/build.prop
  sed -i '/ro.apex.updatable/d' ./out/system/system/product/build.prop
@@ -236,6 +263,7 @@ function normal (){
  sed -i 's/ro.sf.lcd/#&/' ./out/system/system/product/build.prop
  cat ./make/add_build/build1 >> ./out/system/system/build.prop
  cat ./make/add_build/build2 >> ./out/system/system/build.prop
+ cat ./make/add_build/build3 >> ./out/system/system/build.prop
  rm -rf ./make/add_build/*.bak
 
  mainkeys="$(grep 'qemu.hw.mainkeys=' ./out/system/system/build.prop)"
@@ -246,7 +274,7 @@ function normal (){
   echo "#启用虚拟键" >> ./out/system/system/build.prop
   echo "qemu.hw.mainkeys=0" >> ./out/system/system/build.prop
  fi
-
+ 
  #删除多余文件
  rm -rf ./out/system/verity_key
  rm -rf ./out/system/sbin/dashd
@@ -325,9 +353,6 @@ function normal (){
  ./add_phh_lib64_fs.sh
  cd ../../../
 
- #为phh化注册必要的selinux上下文
- cat ./make/add_phh/plat_file_contexts >> ./out/system/system/etc/selinux/plat_file_contexts
- 
  #fs数据整合
  cat ./make/add_fs/contexts >> ./out/config/system_file_contexts
  cat ./make/add_fs/fs >> ./out/config/system_fs_config
@@ -340,6 +365,9 @@ function normal (){
  cd ../../
  
  #亮度修复
+ read -p "是否启用亮度修复(y/n): " light
+ 
+ if [ $light = "y" ];then
   echo "启用亮度修复"
   cp -frp $(find ./out/system/ -type f -name 'services.jar') ./fixbug/lightfix/
   cd ./fixbug/lightfix
@@ -349,12 +377,26 @@ function normal (){
    cp -frp $dist/services.jar ../../out/system/system/framework/
   fi
   cd ../../
+ elif [ $light = "n" ];then
+  echo "跳过亮度修复"
+ else
+  echo "error!"
+  exit
+ fi
  
- #bug修复
+ read -p "是否修复启用bug修复(y/n): " mane
+
+ if [ $mane = 'n' ];then
+  echo "跳过bug修复" 
+ elif [ $mane = 'y' ];then
   echo "启用bug修复"
   cd ./fixbug
    ./fixbug.sh
    cd ../
+ else
+  echo "error!"
+  exit
+ fi
  
  echo "SGSI化处理完成"
  rm -rf ./make/new_fs
@@ -390,7 +432,7 @@ function mandatory_pt (){
  rm -rf ./out/system/sepolicy
  rm -rf ./out/system/vendor_service_contexts
  echo "修改完成"
-  
+
  #apex处理
  rm -rf ./make/apex
  apex_check (){
@@ -431,6 +473,11 @@ function mandatory_pt (){
  true > ./make/add_build/build2
  echo "" >> ./make/add_build/build2
  echo "#oem厂商自定义属性" >> ./make/add_build/build2
+
+ true > ./make/add_build/build3
+ echo "" >> ./make/add_build/build3
+ echo "#oem厂商odm自定义属性" >> ./make/add_build/build3
+ echo "重置完成"
  
  echo "" > /dev/null 2>&1
  
@@ -518,10 +565,13 @@ function mandatory_pt (){
  sed -i '/ro.control_privapp_permissions/d' ./out/system/system/build.prop 
  sed -i 's/ro.sf.lcd/#&/' ./out/system/system/build.prop
  sed -i 's/ro.sf.lcd/#&/' ./out/system/system/product/build.prop
- sed -i '/debug.sf/d' ./out/system/system/build.prop
- sed -i '/hbm/d' ./out/system/system/build.prop
+ sed -i '/debug.sf.early_app_phase_offset_ns/d' ./out/system/system/build.prop
+ sed -i '/debug.sf.early_gl_app_phase_offset_ns/d' ./out/system/system/build.prop
+ sed -i '/debug.sf.early_gl_phase_offset_ns/d' ./out/system/system/build.prop
+ sed -i '/debug.sf.early_phase_offset_ns/d' ./out/system/system/build.prop
  cat ./make/add_build/build1 >> ./out/system/system/build.prop
  #cat ./make/add_build/build2 >> ./out/system/system/build.prop
+ cat ./make/add_build/build3 >> ./out/system/system/build.prop
  rm -rf ./make/add_build/*.bak
 
  mainkeys="$(grep 'qemu.hw.mainkeys=' ./out/system/system/build.prop)"
@@ -592,9 +642,6 @@ function mandatory_pt (){
  ./add_phh_lib64_fs.sh
  cd ../../../
 
- #为phh化注册必要的selinux上下文
- cat ./make/add_phh/plat_file_contexts >> ./out/system/system/etc/selinux/plat_file_contexts
-
  #fs数据整合
  cat ./make/add_fs/contexts >> ./out/config/system_file_contexts
  cat ./make/add_fs/fs >> ./out/config/system_fs_config
@@ -607,20 +654,39 @@ function mandatory_pt (){
  cd ../../
  
  #亮度修复
- echo "启用亮度修复"
- cp -frp $(find ./out/system/ -type f -name 'services.jar') ./fixbug/lightfix/
- cd ./fixbug/lightfix
- ./brightness_fix.sh
- dist="$(find ./services.jar.out/ -type d -name 'dist')"
- if [ ! $dist = "" ];then
-  cp -frp $dist/services.jar ../../out/system/system/framework/
+ read -p "是否启用亮度修复(y/n): " light
+ 
+ if [ $light = "y" ];then
+  echo "启用亮度修复"
+  cp -frp $(find ./out/system/ -type f -name 'services.jar') ./fixbug/lightfix/
+  cd ./fixbug/lightfix
+  ./brightness_fix.sh
+  dist="$(find ./services.jar.out/ -type d -name 'dist')"
+  if [ ! $dist = "" ];then
+   cp -frp $dist/services.jar ../../out/system/system/framework/
+  fi
+  cd ../../
+ elif [ $light = "n" ];then
+  echo "跳过亮度修复"
+ else
+  echo "error!"
+  exit
  fi
- cd ../../
+ 
+ read -p "是否修复启用bug修复(y/n): " mane
 
- echo "启用bug修复"
- cd ./fixbug
- ./fixbug.sh
- cd ../
+ if [ $mane = 'n' ];then
+  echo "跳过bug修复" 
+ elif [ $mane = 'y' ];then
+  echo "启用bug修复"
+  cd ./fixbug
+   ./fixbug.sh
+   cd ../
+ else
+  echo "error!"
+  exit
+ fi
+ 
  echo "SGSI化处理完成"
  rm -rf ./make/new_fs
  ./makeimg.sh
