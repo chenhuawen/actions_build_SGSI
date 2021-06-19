@@ -7,6 +7,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    if: github.event.repository.owner.id == github.event.sender.id
     
     steps: 
        - name: Checkout
@@ -56,18 +57,10 @@ jobs:
          run: |
            sudo tar -xf SGSI-build-tool.tar
            sudo rm -rf SGSI-build-tool/10/setup.sh
-           sudo mv bin/setup.sh SGSI-build-tool/
-           sudo rm -rf SGSI-build-tool/10/make.sh
-           sudo mv bin/make.sh SGSI-build-tool/10/
-           sudo rm -rf SGSI-build-tool/10/SGSI.sh
-           sudo mv bin/SGSI.sh SGSI-build-tool/10/
-           sudo rm -rf SGSI-build-tool/10/fixbug/fixbug.sh
-           sudo mv bin/fixbug.sh SGSI-build-tool/10/fixbug/
-           sudo rm -rf SGSI-build-tool/10/makeimg.sh
-           sudo mv bin/makeimg.sh SGSI-build-tool/10/
-           sudo chmod 777 -R SGSI-build-tool/
+           sudo mv bin/setup.sh SGSI-build-tool/10/
+           cd SGSI-build-tool/10
+           sudo bash setup.sh
            sudo apt-get -y purge "openjdk*"
-           sudo bash SGSI-build-tool/10/setup.sh
            #dpkg -l | grep "openjdk*"
            sudo apt-get -y --purge remove "adoptopenjdk-11-hotspot"
            java -version
