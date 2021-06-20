@@ -1,14 +1,14 @@
 {
-  "rom_url": "https://download.c.realme.com/osupdate/RMX1851_11_OTA_1130_all_iuygSyEV1LmI.ozip",
-  "rom_name": "RMX1851_11_OTA_1130_all_iuygSyEV1LmI.ozip",
+  "rom_url": "https://coloroswebsitefs.coloros.com/coloroswebsite-coloros-com/grs_20210512144856/PBCM10_11_OTA_2190_all_JENPrPCKvK93.ozip",
+  "rom_name": "PBCM10_11_OTA_2190_all_JENPrPCKvK93.ozip",
   "pack_sgsi": "OPPO_SGSI.7z",
   "make_type": "AB",
   "rom_type": "color",
   "light_fix": false,
   "bug_fix": false,
   "version": "10",
-  "upload_transfer": true,
-  "upload_release": false,
+  "upload_transfer": false,
+  "upload_release": true,
   "use_7zip": true,
   "use_zip": false
 }
