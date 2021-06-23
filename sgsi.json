@@ -1,9 +1,9 @@
 {
-  "rom_url": "https://coloroswebsitefs.coloros.com/coloroswebsite-coloros-com/grs_20210512144856/PBCM10_11_OTA_2190_all_JENPrPCKvK93.ozip",
-  "rom_name": "PBCM10_11_OTA_2190_all_JENPrPCKvK93.ozip",
-  "pack_sgsi": "OPPO_SGSI.7z",
+  "rom_url": "https://ota-manual-cn.allawnfs.com/ota/21/06/17/f1dfd7e6-4ead-41ee-b867-9e3fc35379d0.ozip",
+  "rom_name": "f1dfd7e6-4ead-41ee-b867-9e3fc35379d0.ozip",
+  "pack_sgsi": "Realme_SGSI.7z",
   "make_type": "AB",
-  "rom_type": "color",
+  "rom_type": "Realme",
   "light_fix": false,
   "bug_fix": false,
   "version": "10",
