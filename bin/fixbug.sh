@@ -12,6 +12,8 @@ echo "
 
 MIUI
 
+JOY
+
 Flyme
 
 H2OS
