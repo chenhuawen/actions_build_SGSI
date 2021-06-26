@@ -31,7 +31,7 @@ else
  echo "" > /dev/null 2>&1
 fi
 
-if [[ $fix = "miui" ]];then
+if [[ $fix = "JOY" ]];then
  ./miui.sh
  echo "类型：JOY，修复完成"
  cd ../
