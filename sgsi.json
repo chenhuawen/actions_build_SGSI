@@ -1,15 +1,14 @@
 {
-  "rom_url": "https://ota-manual-cn.allawnfs.com/ota/21/06/17/f1dfd7e6-4ead-41ee-b867-9e3fc35379d0.ozip",
-  "rom_name": "f1dfd7e6-4ead-41ee-b867-9e3fc35379d0.ozip",
-  "pack_sgsi": "Realme_SGSI.7z",
+  "rom_url": "https://cdn-test-ota.blackshark.com/DLT-A0/20210507105110-darklighter-ota-signed_by_xiaomi_2bcb1105a058e6a258859cbf64cb86a1.zip",
+  "rom_name": "20210507105110-darklighter-ota-signed_by_xiaomi_2bcb1105a058e6a258859cbf64cb86a1.zip",
+  "pack_sgsi": "SGSI.zip",
   "make_type": "AB",
-  "rom_type": "Realme",
-  "light_fix": false,
-  "bug_fix": false,
-  "version": "10",
-  "upload_transfer": false,
-  "upload_release": true,
-  "use_7zip": true,
-  "use_zip": false
+  "rom_type": "MIUI",
+  "light_fix": true,
+  "bug_fix": true,
+  "version": "11",
+  "upload_transfer": true,
+  "upload_release": false,
+  "use_7zip": false,
+  "use_zip": true
 }
-
