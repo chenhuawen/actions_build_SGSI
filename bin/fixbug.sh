@@ -12,6 +12,8 @@ echo "
 
 MIUI
 
+JOY
+
 Flyme
 
 H2OS
@@ -24,6 +26,14 @@ fix=$1
 if [[ $fix = "miui" ]];then
  ./miui.sh
  echo "类型：MIUI，修复完成"
+ cd ../
+else
+ echo "" > /dev/null 2>&1
+fi
+
+if [[ $fix = "miui" ]];then
+ ./miui.sh
+ echo "类型：JOY，修复完成"
  cd ../
 else
  echo "" > /dev/null 2>&1
