@@ -6,7 +6,7 @@
   "rom_type": "JOY",
   "light_fix": false,
   "bug_fix": false,
-  "version": "11",
+  "version": "10",
   "upload_transfer": true,
   "upload_release": false,
   "use_7zip": true,
