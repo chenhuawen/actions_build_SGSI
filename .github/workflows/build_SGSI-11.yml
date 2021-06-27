@@ -79,7 +79,7 @@ jobs:
        - name: Building AB SGSI
          if: steps.var.outputs.make_type == 'AB' || steps.var.outputs.make_type == 'ab'
          run: |
-            cd SGSI-build-tool/10/payload/payload.py
+            cd SGSI-build-tool/10
             sudo bash make.sh AB
             
        - name: Building A-only SGSI
