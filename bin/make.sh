@@ -98,11 +98,25 @@ if [ -e ./system.img ];then
   mv ./*.img ../
 fi
 
-cd ../
+cd $LOCALDIR
+
+make_type=$1
+
 if [ -e ./system.img ];then
- ./SGSI.sh
- exit
+  case $make_type in
+    "A"|"a") 
+      ./SGSI.sh "A"
+      ;;
+    "AB"|"ab")  
+      ./SGSI.sh "AB"  
+      ;;
+    *)
+      echo "error!"
+      exit
+      ;;
+    esac   
+  exit
 else
- echo "没有检测到system.img 无法制作SGSI"
- exit
+  echo "未检测到system.img, 无法制作SGSI！"
+  exit
 fi
