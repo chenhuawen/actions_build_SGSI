@@ -104,4 +104,5 @@ if [ -e ./system.img ];then
  exit
 else
  echo "没有检测到system.img 无法制作SGSI"
+ exit
 fi
