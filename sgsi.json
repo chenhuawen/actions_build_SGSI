@@ -5,6 +5,8 @@
   "make_type": "AB",
   "rom_type": "JOY",
   "version": "10",
+  "light_fix": false,
+  "bug_fix": true,
   "upload_transfer": true,
   "upload_release": false,
   "use_7zip": true,
