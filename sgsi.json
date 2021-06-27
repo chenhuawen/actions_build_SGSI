@@ -4,8 +4,6 @@
   "pack_sgsi": "SGSI.7z",
   "make_type": "AB",
   "rom_type": "JOY",
-  "light_fix": false,
-  "bug_fix": false,
   "version": "10",
   "upload_transfer": true,
   "upload_release": false,
