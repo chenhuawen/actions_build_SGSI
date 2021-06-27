@@ -79,7 +79,7 @@ jobs:
        - name: Building AB SGSI
          if: steps.var.outputs.make_type == 'AB' || steps.var.outputs.make_type == 'ab'
          run: |
-            cd SGSI-build-tool/10
+            cd SGSI-build-tool/10/payload/payload.py
             sudo bash make.sh AB
             
        - name: Building A-only SGSI
@@ -109,7 +109,7 @@ jobs:
          run: |
             echo "启用bug修复"
             cd SGSI-build-tool/10/fixbug
-            sudo bash fixbug.sh ${{ steps.var.outputs.rom_type }}
+            sudo bash fixbug.sh ${{ steps.var.outputs.rom_type }}     
             
        - name: Packing SGSI Image
          run: |
