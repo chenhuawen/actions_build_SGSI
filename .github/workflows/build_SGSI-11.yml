@@ -89,7 +89,7 @@ jobs:
             sudo bash make.sh A
             
        - name: Fixing Light Start
-         if: steps.var.outputs.light_fix == 'false'
+         if: steps.var.outputs.light_fix == 'true'
          run: |
             echo "启用亮度修复"
             cd SGSI-build-tool-11/11
@@ -98,14 +98,14 @@ jobs:
             sudo bash brightness_fix.sh
             
        - name: Fixing Light Finish
-         if: steps.var.outputs.light_fix == 'false'
+         if: steps.var.outputs.light_fix == 'true'
          run: |
             cd SGSI-build-tool-11/11
             sudo cp -frp fixbug/light_fix/services.jar.out/dist/services.jar out/system/system/framework/services.jar
             echo "替换完成"
             
        - name: Fixing Bug
-         if: steps.var.outputs.bug_fix == 'false'
+         if: steps.var.outputs.bug_fix == 'true'
          run: |
             echo "启用bug修复"
             cd SGSI-build-tool-11/11/fixbug
