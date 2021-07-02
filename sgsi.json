@@ -1,14 +1,14 @@
 {
   "rom_url": "http://romdownload.nubia.com/%E5%8A%AA%E6%AF%94%E4%BA%9APlay/V3.20/NX651J-update.zip",
   "rom_name": "NX651J-update.zip",
-  "pack_sgsi": "SGSI.7z",
+  "pack_sgsi": "SGSI.zip",
   "make_type": "AB",
   "rom_type": "nubia",
   "light_fix": false,
-  "bug_fix": true,
+  "bug_fix": false,
   "version": "11",
   "upload_transfer": false,
   "upload_release": true,
-  "use_7zip": true,
-  "use_zip": false
+  "use_7zip": false,
+  "use_zip": true
 }
