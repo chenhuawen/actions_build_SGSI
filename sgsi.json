@@ -1,14 +1,14 @@
 {
-  "rom_url": "https://cdn-test-ota.blackshark.com/DLT-A0/20210507105110-darklighter-ota-signed_by_xiaomi_2bcb1105a058e6a258859cbf64cb86a1.zip",
-  "rom_name": "20210507105110-darklighter-ota-signed_by_xiaomi_2bcb1105a058e6a258859cbf64cb86a1.zip",
+  "rom_url": "http://romdownload.nubia.com/%E5%8A%AA%E6%AF%94%E4%BA%9APlay/V3.20/NX651J-update.zip",
+  "rom_name": "NX651J-update.zip",
   "pack_sgsi": "SGSI.7z",
   "make_type": "AB",
-  "rom_type": "JOY",
-  "version": "10",
+  "rom_type": "nubia",
   "light_fix": false,
   "bug_fix": true,
-  "upload_transfer": true,
-  "upload_release": false,
+  "version": "11",
+  "upload_transfer": false,
+  "upload_release": true,
   "use_7zip": true,
   "use_zip": false
 }
