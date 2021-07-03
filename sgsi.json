@@ -1,14 +1,14 @@
 {
-  "rom_url": "http://romdownload.nubia.com/%E5%8A%AA%E6%AF%94%E4%BA%9APlay/V3.20/NX651J-update.zip",
-  "rom_name": "NX651J-update.zip",
+  "rom_url": "https://bigota.d.miui.com/21.6.30/miui_GINKGO_21.6.30_5d23bc35ea_11.0.zip",
+  "rom_name": "miui_GINKGO_21.6.30_5d23bc35ea_11.0.zip",
   "pack_sgsi": "SGSI.7Z",
   "make_type": "AB",
-  "rom_type": "",
+  "rom_type": "MIUI",
   "light_fix": false,
   "bug_fix": false,
   "version": "11",
-  "upload_transfer": true,
-  "upload_release": false,
+  "upload_transfer": false,
+  "upload_release": true,
   "use_7zip": true,
   "use_zip": false
 }
