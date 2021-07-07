@@ -1,9 +1,9 @@
 {
-  "rom_url": "https://bigota.d.miui.com/V12.5.4.0.RFKCNXM/miui_RAPHAEL_V12.5.4.0.RFKCNXM_1d376aa388_11.0.zip",
-  "rom_name": "miui_RAPHAEL_V12.5.4.0.RFKCNXM_1d376aa388_11.0.zip",
+  "rom_url": "https://download.c.realme.com/osupdate/RMX1901_11_OTA_1190_all_EyyIUd8KYxPI.ozip",
+  "rom_name": "RMX1901_11_OTA_1190_all_EyyIUd8KYxPI.ozip",
   "pack_sgsi": "SGSI.7Z",
   "make_type": "AB",
-  "rom_type": "miui",
+  "rom_type": "colorOS",
   "light_fix": false,
   "bug_fix": true,
   "version": "11",
