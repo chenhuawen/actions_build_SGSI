@@ -1,9 +1,9 @@
 {
-  "rom_url": "https://bj29.cn-beijing.data.alicloudccp.com/rg3fGcTY%2F16839821%2F60e92179edb8e1341c244a78abc9c352b9b02953%2F60e9217986517d2d80dd4f0c8fc0771740b5e488?di=bj29&dr=16839821&f=60e92179edb8e1341c244a78abc9c352b9b02953&response-content-disposition=attachment%3B%20filename%2A%3DUTF-8%27%27NX651J-update.zip&u=a2ebf9f3894149a88b5449d7e3be736b&x-oss-access-key-id=LTAIsE5mAn2F493Q&x-oss-additional-headers=referer&x-oss-expires=1625893657&x-oss-signature=gsUgqbfHeCbhWteN1iz4lfPC%2BBRAKMckaSzBIZpKGcs%3D&x-oss-signature-version=OSS2",
-  "rom_name": "NX651J-update.zip",
+  "rom_url": "http://cdn-ota.blackshark.com/KLE-A1/20210531145542-klein-deltaota_834bf09f9c57302e1800631b694eda86.zip",
+  "rom_name": "20210531145542-klein-deltaota_834bf09f9c57302e1800631b694eda86.zip",
   "pack_sgsi": "SGSI.7Z",
   "make_type": "AB",
-  "rom_type": "nubiaUI",
+  "rom_type": "JOYUI",
   "light_fix": false,
   "bug_fix": true,
   "version": "11",
