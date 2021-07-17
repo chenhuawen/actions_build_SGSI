@@ -1,9 +1,9 @@
 {
-  "rom_url": "http://cdn-ota.blackshark.com/KLE-A1/20210531145542-klein-deltaota_834bf09f9c57302e1800631b694eda86.zip",
-  "rom_name": "20210531145542-klein-deltaota_834bf09f9c57302e1800631b694eda86.zip",
+  "rom_url": "https://coloroswebsitefs.coloros.com/coloroswebsite-coloros-com/grs_20210422084808/PCLM10_11_OTA_1350_all_RdVc0SEDWd4u.ozip",
+  "rom_name": "PCLM10_11_OTA_1350_all_RdVc0SEDWd4u.ozip",
   "pack_sgsi": "SGSI.7Z",
   "make_type": "AB",
-  "rom_type": "JOYUI",
+  "rom_type": "ColorOS",
   "light_fix": false,
   "bug_fix": true,
   "version": "11",
