@@ -1,9 +1,9 @@
 {
-  "rom_url": "https://bigota.d.miui.com/21.7.23/miui_CRUX_21.7.23_73f5831d2b_11.0.zip",
-  "rom_name": "miui_CRUX_21.7.23_73f5831d2b_11.0.zip",
+  "rom_url": "https://hugeota.d.miui.com/21.7.23/miui_TUCANA_21.7.23_8644e704a8_11.0.zip",
+  "rom_name": "miui_TUCANA_21.7.23_8644e704a8_11.0.zip",
   "pack_sgsi": "SGSI.7z",
   "make_type": "AB",
-  "rom_type": "",
+  "rom_type": "MIUI",
   "light_fix": true,
   "bug_fix": true,
   "version": "11",
