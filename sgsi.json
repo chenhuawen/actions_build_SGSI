@@ -1,9 +1,9 @@
 {
-  "rom_url": "http://sysupwrdl.vivo.com.cn/upgrade/official/officialFiles/PD2024_A_1.22.1-update-full_1614044525.zip",
-  "rom_name": "PD2024_A_1.22.1-update-full_1614044525.zip",
-  "pack_sgsi": "SGSI.7z",
+  "rom_url": "http://toss-a.ddns.net:5244/d/toss-a/OPPO%20Find%20X2%E7%B3%BB%E5%88%97/%E6%81%A2%E5%A4%8D%E5%AE%98%E6%96%B9%E5%8C%85%E5%8D%A1%E5%88%B7/PDEM30_11_OTA_10901510_all_RjUGGpYGiU1t_cdf23.ozip?pw=4c3367954803be2f",
+  "rom_name": "PDEM30_11_OTA_10901510_all_RjUGGpYGiU1t_cdf23.ozip",
+  "pack_sgsi": "SGSI.zip",
   "make_type": "AB",
-  "rom_type": "OriginOS",
+  "rom_type": "color",
   "light_fix": true,
   "bug_fix": true,
   "version": "11",
