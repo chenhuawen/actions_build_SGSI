@@ -1,9 +1,9 @@
 {
-  "rom_url": "https://coloroswebsitefs.coloros.com/coloroswebsite-coloros-com/null_20210721143947/PCHM10_11_OTA_1780_all_ll0GfF0OULc9.ozip",
-  "rom_name": "update.zip",
-  "pack_sgsi": "ColorOs_SGSI.zip",
+  "rom_url": "https://bigota.d.miui.com/V12.5.5.0.RFKCNXM/miui_RAPHAEL_V12.5.5.0.RFKCNXM_f3919faa90_11.0.zip",
+  "rom_name": "miui_RAPHAEL_V12.5.5.0.RFKCNXM_f3919faa90_11.0.zip",
+  "pack_sgsi": "MIUI_SGSI.zip",
   "make_type": "AB",
-  "rom_type": "color",
+  "rom_type": "miui",
   "light_fix": true,
   "bug_fix": true,
   "version": "11",
