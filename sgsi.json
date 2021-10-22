@@ -1,14 +1,14 @@
 {
-  "rom_url": "https://120-238-118-3.ksyungslb.com/bigota.d.miui.com/V12.5.4.0.RFACNXM/miui_CEPHEUS_V12.5.4.0.RFACNXM_62ddc4493a_11.0.zip",
-  "rom_name": "miui_CEPHEUS_V12.5.4.0.RFACNXM_62ddc4493a_11.0.zip",
+  "rom_url": "http://sysupwrdl.vivo.com.cn/upgrade/official/officialFiles/PD2066_A_1.6.25-update-full_1624949929.zip",
+  "rom_name": "PD2066_A_1.6.25-update-full_1624949929.zip",
   "pack_sgsi": "SGSI.7z",
   "make_type": "AB",
-  "rom_type": "miui",
+  "rom_type": "vivo",
   "light_fix": true,
   "bug_fix": true,
   "version": "11",
-  "upload_transfer": true,
-  "upload_release": false,
+  "upload_transfer": false,
+  "upload_release": true,
   "use_7zip": true,
   "use_zip": false
 }
