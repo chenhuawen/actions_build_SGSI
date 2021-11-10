@@ -1,9 +1,9 @@
 {
-  "rom_url": "https://sysupwrdl.vivo.com.cn/upgrade/official/officialFiles/PD1824_A_8.10.36-update-full_1634718654.zip",
-  "rom_name": "PD1824_A_8.10.36-update-full_1634718654.zip",
+  "rom_url": "https://bigota.d.miui.com/V12.5.5.0.RFKCNXM/miui_RAPHAEL_V12.5.5.0.RFKCNXM_f3919faa90_11.0.zip",
+  "rom_name": "miui_RAPHAEL_V12.5.5.0.RFKCNXM_f3919faa90_11.0.zip",
   "pack_sgsi": "SGSI.7z",
   "make_type": "AB",
-  "rom_type": "",
+  "rom_type": "miui",
   "light_fix": true,
   "bug_fix": true,
   "version": "11",
