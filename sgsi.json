@@ -1,9 +1,9 @@
 {
-  "rom_url": "http://romdownload.nubia.com/Z20/V3.20/NX627J-update.zip",
-  "rom_name": "NX627J-update.zip",
+  "rom_url": "https://sysupwrdl.vivo.com.cn/upgrade/official/officialFiles/PD2085_A_1.14.2-update-full_1627451955.zip",
+  "rom_name": "PD2085_A_1.14.2-update-full_1627451955.zip",
   "pack_sgsi": "SGSI.7z",
   "make_type": "AB",
-  "rom_type": "nubia",
+  "rom_type": "vivo",
   "light_fix": true,
   "bug_fix": true,
   "version": "11",
