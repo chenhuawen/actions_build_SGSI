@@ -1,9 +1,9 @@
 {
-  "rom_url": "https://sysupwrdl.vivo.com.cn/upgrade/official/officialFiles/PD2085_A_1.14.2-update-full_1627451955.zip",
-  "rom_name": "PD2085_A_1.14.2-update-full_1627451955.zip",
+  "rom_url": "https://componentota-manual-cn.allawnfs.com/component-ota/21/10/17/8c89fffacdfe4f5b95bc576c10e0b15e.zip",
+  "rom_name": "8c89fffacdfe4f5b95bc576c10e0b15e.zip",
   "pack_sgsi": "SGSI.7z",
   "make_type": "AB",
-  "rom_type": "vivo",
+  "rom_type": "OPPO",
   "light_fix": true,
   "bug_fix": true,
   "version": "11",
