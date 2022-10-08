@@ -82,12 +82,6 @@ jobs:
             cd SGSI-build-tool-11/11
             sudo bash make.sh AB
             
-       - name: Building A-only SGSI
-         if: steps.var.outputs.make_type == 'A' || steps.var.outputs.make_type == 'a'
-         run: |
-            cd SGSI-build-tool-11/11
-            sudo bash make.sh A
-            
        - name: Fixing Light Start
          if: steps.var.outputs.light_fix == 'true'
          run: |
