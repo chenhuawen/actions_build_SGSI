@@ -3,7 +3,7 @@
   "rom_name": "PD2047_A_5.11.3-update-full_1655190484.zip",
   "pack_sgsi": "SGSI.zip",
   "make_type": "AB",
-  "rom_type": "vivo",
+  "rom_type": "",
   "light_fix": true,
   "bug_fix": true,
   "version": "11",
